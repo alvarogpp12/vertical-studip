@@ -137,11 +137,12 @@ def generar(
             con.print("[red]No se genera nada.[/red] Corrige el prompt o usa --saltar-lint.")
             raise typer.Exit(2)
         if not imagen:
+            from .dominio import referencias as refs_mod
             from .dominio.identidad import RE_TAG, tags_en_texto
             tags = [t for t in tags_en_texto(texto) if RE_TAG.match(t) and registro.existe(t)]
-            imagen = registro.urls(*tags)
+            imagen = refs_mod.urls(refs_mod.ranuras(registro, tags))
             if imagen:
-                con.print(f"Referencias del registro: {len(imagen)}")
+                con.print(f"Referencias del registro: {len(imagen)} (@Image1…@Image{len(imagen)})")
 
     p = PeticionVideo(prompt=texto, duracion=duracion, resolucion=resolucion, imagenes=list(imagen),
                       primer_fotograma=primer_fotograma or None)

@@ -28,9 +28,14 @@ Planos de 3–8 s. Menos de 3 s no da tiempo a leer una cara; más de 8 s es car
 modelo se desordena. Un episodio típico son 10–18 planos.
 
 ## R-06 · Geografía antes que acción
-El **primer plano del episodio es un máster de 1 segundo**, sin diálogo y sin acción,
-que fija la geografía de la localización. Es el plano más barato del episodio y el que
-evita que los siguientes se contradigan entre sí.
+El **primer plano del episodio es un máster de 1 segundo** en pantalla, sin diálogo y
+sin acción, que fija la geografía de la localización. Evita que los siguientes se
+contradigan entre sí.
+
+**Pero el modelo no genera menos de 4 segundos** (es el contrato de Seedance, no una
+preferencia). Así que el máster se pide con `duracion: 4` y `duracion_montaje: 1`: se
+genera el mínimo y el montaje recorta. La duración total del episodio cuenta lo
+**montado**, no lo generado.
 
 ## R-09 · El diálogo tiene que caber
 `duración ≥ palabras / 4 + 1 segundo de cola limpia`.
@@ -80,7 +85,8 @@ de casting.
 | Lo que pide la sinopsis no cabe en 90 s | `humano` | `NO_CABE_EN_EL_FORMATO` |
 
 ## Lo que comprueba el validador
-Bloquean: `EPISODIO_CORTO` (<61 s para TikTok) · `DURACION_INCOHERENTE` (la suma de
+Bloquean: `DURACION_BAJO_MODELO` (menos de 4 s: el modelo no los genera) ·
+`EPISODIO_CORTO` (<61 s para TikTok) · `DURACION_INCOHERENTE` (la suma de
 los planos no coincide con `duracion_total`) · `ORDEN_INCOMPLETO` (el orden no es
 1..N) · `SIN_GANCHO` · `SIN_CLIFFHANGER` · `SIN_MASTER` · `DIALOGO_NO_CABE` ·
 `CAMARA_MULTIPLE` (más de un movimiento) · `CAMARA_PROHIBIDA` (travelling lateral,

@@ -2,7 +2,9 @@
 > Claude Code: lee este archivo al empezar cada sesión y actualízalo al terminar (qué se hizo, qué falta, bloqueos).
 
 ## Última actualización
-2026-09-11 · Fases A–G de la arquitectura de agentes: núcleo de datos, validadores, casting, los cuatro agentes con su evaluación, y el orquestador con montaje. 105 tests y `ruff` en verde.
+2026-09-11 · **Contrastado el conocimiento de prompting contra los contratos reales de
+API y las guías de los proveedores** (`docs/conocimiento/04_apis_y_prompting.md`).
+Aparecieron errores de diseño serios, ya corregidos. Antes: fases A–G de la arquitectura de agentes: núcleo de datos, validadores, casting, los cuatro agentes con su evaluación, y el orquestador con montaje. 105 tests y `ruff` en verde.
 
 ## Hecho
 - Investigación: sistema director, 12 reglas del top 30 de Higgsfield, vertical 9:16, proveedores y costes, políticas de plataformas.
@@ -37,10 +39,42 @@
 - El coste de cada llamada al LLM queda en el log (`llm_llamada`) y cuenta para el tope diario.
 - `evals/`: un script por agente, sin frameworks. El golden set del director (24 prompts, cada uno una mutación que rompe una regla concreta) pasa 24/24 y corre en CI, gratis.
 
+### Corrección del 2026-09-11 · lo que dice la documentación real
+La primera versión de las referencias se escribió extrapolando de las 12 reglas del top
+30. Al contrastarla con el OpenAPI de fal y las guías de BytePlus:
+
+- **Las referencias se citan por posición: `@Image1`, `@Image2`.** El modelo no conoce
+  nuestros `@tag`. Mandábamos `image_urls` **sin citarlas nunca**: pagábamos por subir
+  hojas de personaje que el modelo podía estar ignorando. Ahora hay un módulo
+  (`dominio/referencias.py`) que numera las ranuras, lo usan el director y el proveedor,
+  y el linter exige la cita (`REFERENCIA_SIN_CITAR`, `CITA_FUERA_DE_RANGO`).
+- **Ningún modelo genera menos de 4 s.** El máster de 1 s de R-06 era ingenerable. Ahora
+  el plano distingue `duracion` (lo que se genera y se paga) de `duracion_montaje` (lo
+  que dura en pantalla), y el validador lo comprueba (`DURACION_BAJO_MODELO`).
+- **Kling tiene `negative_prompt`** y nosotros no teníamos el campo. Añadido.
+- **Kling tiene `elements` (frontal + multiángulo) y `voice_id` por elemento**: son
+  nuestra hoja de personaje y nuestro AUDIO LOCK como función nativa, sin usar todavía.
+- **Kling exige `start_image_url`**: el router ya no lo elige para un plano sin imagen.
+- **«fast» es la palabra que más degrada** según la guía oficial; `cinematic`, `epic` y
+  compañía son vagas y caras. Están en la denylist (`VOCABULARIO_QUE_DEGRADA`).
+- **Los rangos `0-5s:` se leen como texto** y el modelo los honra literalmente. Nuestro
+  bloque `SEGMENTS` usaba justo ese formato; ahora son etiquetas `Shot 1 / Shot 2 /
+  Closing` y el linter rechaza los rangos (`RANGO_DE_TIEMPO`).
+- **R-08 queda matizado**: lo narrativo va como «= failed take» (el top 30 lo valida),
+  pero para artefactos técnicos el proveedor documenta que el negativo funciona.
+- Las referencias de las skills pasan a tres niveles de evidencia: **[P]** proveedor,
+  **[V]** validado en el top 30, **[H]** hipótesis. Hay un test que lo exige.
+- Contradicción abierta y anotada: R-09 calcula 4 palabras/s (60 por 15 s) y las pruebas
+  de terceros hablan de 20 palabras por 15 s. Sin medir.
+
+Golden set del director: 24 → 28 casos, sigue en 28/28.
+
 ## En curso · Fase 0 · Cimientos
 - [ ] Claves en `.env`: Anthropic, BytePlus, fal
 - [ ] Issue #3 · Verificar conector BytePlus con llamada real
 - [ ] Issue #4 · Precios reales de consola en `config/modelos.yaml` (siguen `estimado`/`verificar`)
+- [ ] Leer la guía oficial de BytePlus **en la consola**: la página es una SPA y no se deja leer por fetch; los puntos de la §4 de `04_apis_y_prompting.md` son de segunda mano
+- [ ] Probar `elements` + `voice_id` de Kling: son la hoja de personaje y el AUDIO LOCK nativos
 - [ ] Verificación pendiente de la fase C: hoja de personaje real → subida → referencia en un vídeo borrador (~0,20 $)
 - [ ] Issue #5 · R2: reevaluar; con `fal_client.upload_file()` ya no bloquea nada
 

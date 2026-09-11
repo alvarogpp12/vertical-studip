@@ -24,3 +24,7 @@
 {"id": "p22", "etiqueta": "valido", "nota": "más bloqueos positivos no rompen nada", "mutacion": {"anadir": "POSITIVE LOCKS\nA change of coat colour between frames = failed take."}}
 {"id": "p23", "etiqueta": "valido", "nota": "máster de geografía: sin diálogo", "mutacion": {"sustituir": [["DIALOGUE\nNadia: \"Esta firma no es mia\"", "DIALOGUE\n(none)"]]}}
 {"id": "p24", "etiqueta": "TAG_NO_REGISTRADO", "nota": "R-01: un prop que nadie registró", "mutacion": {"anadir": "The envelope @prop_canon-rojo_Sobre_v1 rests on the desk."}}
+{"id": "p25", "etiqueta": "CITA_FUERA_DE_RANGO", "nota": "sólo se mandan 3 imágenes: @Image7 no existe", "mutacion": {"anadir": "The lamp in @Image7 stays off."}}
+{"id": "p26", "etiqueta": "RANGO_DE_TIEMPO", "nota": "«0-5s» se lee como texto y el modelo intenta honrarlo (04_apis §5)", "mutacion": {"sustituir": [["Shot 1: she reads the signature line, eyes tracking once.", "0.0-2.0s she reads the signature line."]]}}
+{"id": "p27", "etiqueta": "VOCABULARIO_QUE_DEGRADA", "nota": "«fast» es la palabra que más degrada según la guía oficial de Seedance", "mutacion": {"sustituir": [["Slow push-in from medium to close-up", "Fast push-in from medium to close-up"]]}}
+{"id": "p28", "etiqueta": "VOCABULARIO_QUE_DEGRADA", "nota": "«cinematic» y «epic» son vagas: el modelo rellena a su gusto", "mutacion": {"anadir": "Epic cinematic atmosphere."}}

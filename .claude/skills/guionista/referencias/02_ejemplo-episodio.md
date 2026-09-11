@@ -22,7 +22,7 @@ beat que no cambia el valor es relleno y hay que cortarlo: cuesta dinero.
 
 | orden | dur | tamaño | cámara | refs | diálogo | por qué |
 |---|---|---|---|---|---|---|
-| 1 | 1 | plano general | fijo | loc | — | **Máster de geografía** (R-06). Sin diálogo, sin acción |
+| 1 | 1 (gen. 4) | plano general | fijo | loc | — | **Máster de geografía** (R-06). Sin diálogo. `duracion: 4, duracion_montaje: 1`: el modelo no genera menos |
 | 2 | 3 | primer plano | push-in | char Nadia | — | **Gancho**: su cara al leer, antes de saber nada |
 | 3 | 4 | inserto | fijo | loc | — | El papel en la mesa, la firma fuera de foco (no legible) |
 | 4 | 5 | primer plano | fijo | char Nadia | «Esta firma no es mía» | 5 palabras = 2,25 s mínimo; 5 s da aire |
@@ -41,8 +41,8 @@ Suma: 75 s. Dentro de 61–90.
 
 ## Por qué funciona
 
-- **El máster va primero y dura 1 s.** El plano más barato del episodio y el que evita
-  que los trece siguientes se contradigan.
+- **El máster va primero y dura 1 s en pantalla.** Se generan 4 (el mínimo del modelo) y
+  se recortan en el montaje. Evita que los trece siguientes se contradigan.
 - **El gancho no explica nada.** Plano 2: una cara. El espectador se queda porque no
   sabe qué pasa, no porque se lo hayan contado.
 - **Los insertos (3, 11) no muestran texto.** El modelo no sabe escribir; se ve el

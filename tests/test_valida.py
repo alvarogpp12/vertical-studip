@@ -30,7 +30,8 @@ PROMPT_BUENO = """# STYLE PREFIX (inmutable durante toda la serie)
 Style: gritty 90s film look, vertical 9:16 composition, hard key light, 85mm.
 
 ACTIVE REFERENCES
-@char_canon-rojo_Nadia_v1 — Woman, 40s, short black hair, scar on left brow, grey wool coat.
+The woman in @Image1 — @char_canon-rojo_Nadia_v1
+Woman, 40s, short black hair, scar on left brow, grey wool coat.
 
 PERFORMANCE
 She counts the folder pages twice, then squares them against the table. Eyes wet and alive.
@@ -81,6 +82,37 @@ def test_prompt_con_tag_no_registrado():
     informe = valida_prompt(PROMPT_BUENO.replace("Nadia_v1", "Otra_v1"), style_md=STYLE,
                             registro=_registro())
     assert "TAG_NO_REGISTRADO" in informe.codigos
+
+
+def test_las_referencias_se_citan_por_posicion():
+    """Seedance no conoce nuestros @tag: «Refer to them as @Image1, @Image2, etc.»."""
+    plano = Plano(id="s01_ep01_sh002", duracion=6, camara="push-in",
+                  refs=["@char_canon-rojo_Nadia_v1"])
+    sin_cita = PROMPT_BUENO.replace("The woman in @Image1 — ", "")
+    informe = valida_prompt(sin_cita, style_md=STYLE, registro=_registro(), plano=plano)
+    assert "REFERENCIA_SIN_CITAR" in informe.codigos
+
+
+def test_no_se_puede_citar_una_imagen_que_no_se_manda():
+    plano = Plano(id="s01_ep01_sh002", duracion=6, camara="push-in",
+                  refs=["@char_canon-rojo_Nadia_v1"])
+    de_mas = PROMPT_BUENO.replace("@Image1", "@Image1 and the desk in @Image4")
+    informe = valida_prompt(de_mas, style_md=STYLE, registro=_registro(), plano=plano)
+    assert "CITA_FUERA_DE_RANGO" in informe.codigos
+
+
+def test_los_rangos_de_tiempo_literales_se_rechazan():
+    """«0-5s:» se lee como texto y el modelo intenta honrarlo (04_apis_y_prompting §5)."""
+    informe = valida_prompt(PROMPT_BUENO + "\nSEGMENTS\n0.0-2.0s she reads.\n",
+                            style_md=STYLE, registro=_registro())
+    assert "RANGO_DE_TIEMPO" in informe.codigos
+
+
+def test_las_palabras_que_degradan_se_rechazan():
+    """La guía oficial de Seedance: «fast» es la que más degrada; «cinematic» es vaga."""
+    informe = valida_prompt(PROMPT_BUENO + "\nFast, cinematic camera move.\n",
+                            style_md=STYLE, registro=_registro())
+    assert "VOCABULARIO_QUE_DEGRADA" in informe.codigos
 
 
 def test_descriptor_tiene_que_ir_literal():
@@ -188,3 +220,25 @@ def test_el_at_tag_del_bloque_constraints_no_cuenta_como_referencia():
         "Photoreal live-action. Identities match their @tag references in every shot.")
     informe = valida_prompt(prompt, style_md=style, registro=_registro())
     assert informe.ok, informe.resumen()
+
+
+def test_la_duracion_minima_del_modelo_bloquea_el_master_de_un_segundo():
+    """El contrato de Seedance empieza en 4 s: pedir 1 s es un error, no una preferencia."""
+    informe = valida_plano(Plano(id="s01_ep01_sh001", duracion=1, es_master=True),
+                           modelo="seedance-2.0-fast@byteplus")
+    assert "DURACION_BAJO_MODELO" in informe.codigos
+    assert "recorta en el montaje" in informe.errores[0].mensaje
+    bueno = Plano(id="s01_ep01_sh001", duracion=4, duracion_montaje=1, es_master=True)
+    assert valida_plano(bueno, modelo="seedance-2.0-fast@byteplus").ok
+
+
+def test_un_asset_con_referencias_locales_avisa():
+    """Con --no-subir las URLs son rutas del disco: el modelo no puede leerlas."""
+    from showrunner.dominio.registro import Asset, Referencia, Registro
+
+    r = Registro(serie="canon-rojo")
+    r.anadir(Asset(id="@char_canon-rojo_Nadia_v1", descriptor=DESCRIPTOR, estado="aprobado",
+                   referencias=[Referencia(url="/tmp/cara.png", tipo="cara")]))
+    informe = valida_plano(Plano(id="s01_ep01_sh002", refs=["@char_canon-rojo_Nadia_v1"]),
+                           registro=r)
+    assert "REFERENCIA_NO_PUBLICA" in informe.codigos

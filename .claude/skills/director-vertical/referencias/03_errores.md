@@ -1,7 +1,8 @@
 # Catálogo de fallos: síntoma en la toma → línea culpable → arreglo
 
-> **Procedencia.** Los síntomas y las reglas son **[V]**; los arreglos concretos son
-> hipótesis (**[H]**) hasta que el ledger de rechazos de la fase 5 los confirme.
+> **Procedencia.** **[P]** = documentación del proveedor · **[V]** = validado en el top
+> 30 · **[H]** = hipótesis. Los arreglos concretos son **[H]** salvo donde se indique,
+> hasta que el ledger de rechazos de la fase 5 los confirme.
 > **Guarda cada rechazo con su motivo**: esta tabla se corrige con esos datos, no con
 > opiniones.
 
@@ -10,6 +11,7 @@ te deja sin saber cuál funcionó, y la siguiente vez vuelves a empezar de cero.
 
 | Síntoma | Causa habitual | Arreglo (una línea) |
 |---|---|---|
+| **La referencia parece ignorada: sale otra cara aunque la hoja esté bien** | El prompt no cita `@Image1` **[P]** | Cita la ranura pegada a un sustantivo: `the woman in @Image1` |
 | La cara cambia entre el principio y el final | El descriptor no va literal, o falta un ancla | Pega el descriptor congelado entero, con sus anclas |
 | Sale otra persona | El descriptor es genérico («a woman in her forties») | Añade las 2–3 anclas de identidad |
 | La toma empieza con la sala vacía | No hay `FIRST FRAME` | Añádelo con «already» y el objeto en la mano |
@@ -20,7 +22,11 @@ te deja sin saber cuál funcionó, y la siguiente vez vuelves a empezar de cero.
 | La cara se derrite a media toma | Una transición (`becomes`, `turns into`, `fades`) | Reescríbelo como estado sostenido |
 | Rostro de cera, no parpadea | Falta la cláusula de ojos vivos | `Eyes wet and alive with catch-lights; she blinks twice.` |
 | El movimiento de cámara hace algo raro a mitad | Dos movimientos en un plano | Deja uno; el otro es otro plano |
-| Tiembla la imagen | El modelo mete cámara en mano por defecto | Añade `tripod` o `locked-off` |
+| Tiembla la imagen | El modelo mete cámara en mano por defecto | Añade `tripod` o `locked-off`; en Kling, `jittery camera` al negativo **[P]** |
+| Jitter y artefactos en toda la toma | La palabra `fast` en el prompt **[P]** | Quítala. Si algo va rápido, que sea una sola cosa |
+| El resultado varía muchísimo entre tiradas | `cinematic`, `epic` u otra palabra vaga **[P]** | Sustitúyela por la instrucción concreta que querías |
+| La toma respeta tiempos raros o se corta mal | Rangos `0-5s:` en el prompt **[H]** | Reescríbelos como `Shot 1 / Shot 2 / Closing` |
+| El lip-sync baila | La cámara se mueve durante el diálogo **[H]** | Plano fijo o push-in muy lento, y añade la cláusula de lip-sync |
 | El diálogo va acelerado o se corta | Más palabras de las que caben | Parte el plano; no aceleres la frase |
 | No hay silencio final y el montaje corta feo | Falta el segundo de cola | Añádelo en `SEGMENTS` |
 | Aparece música | Falta «No music» | Añádelo literal en `AUDIO` |

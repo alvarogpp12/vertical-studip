@@ -26,7 +26,14 @@ sys.path.insert(0, str(AQUI))
 from comun import CASOS, Marcador, aplicar_mutacion, cargar_casos, guardar
 
 from showrunner.dominio import registro as reg
+from showrunner.dominio.shotlist import Plano
 from showrunner.valida import valida_prompt
+
+#: El plano del que sale el prompt base. Hace falta para comprobar las citas
+#: posicionales (@Image1…): sin plano no se sabe cuántas referencias se mandan.
+PLANO_BASE = Plano(id="s01_ep01_sh004", beat=2, duracion=6, tamano="primer plano",
+                   camara="push-in lento", dialogo="Esta firma no es mia",
+                   refs=["@char_canon-rojo_Nadia_v1", "@loc_canon-rojo_Despacho_v1"])
 
 
 def clasifica(codigos: list[str]) -> str:
@@ -41,7 +48,7 @@ def evalua_linter() -> Marcador:
 
     for caso in cargar_casos("prompts.jsonl"):
         prompt = aplicar_mutacion(base, caso.datos.get("mutacion"))
-        informe = valida_prompt(prompt, style_md=style, registro=registro)
+        informe = valida_prompt(prompt, style_md=style, registro=registro, plano=PLANO_BASE)
         codigos = [i.codigo for i in informe.errores]
         esperado = caso.etiqueta
         # Un prompt roto suele disparar varios códigos a la vez. Se da por acertado

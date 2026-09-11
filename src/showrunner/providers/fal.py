@@ -39,9 +39,12 @@ class FalProveedor(Proveedor):
             data = {
                 "prompt": p.prompt,
                 "duration": str(p.duracion),
-                "image_url": p.primer_fotograma or (p.imagenes[0] if p.imagenes else None),
+                # El endpoint lo llama start_image_url y es obligatorio.
+                "start_image_url": p.primer_fotograma or (p.imagenes[0] if p.imagenes else None),
                 "generate_audio": p.audio,
             }
+            if p.negative_prompt:
+                data["negative_prompt"] = p.negative_prompt
         if p.seed is not None:
             data["seed"] = p.seed
         return {k: v for k, v in data.items() if v not in (None, [], "")}

@@ -1,8 +1,9 @@
 # Un prompt completo, línea a línea
 
 > **Procedencia.** La estructura de bloques y las reglas citadas están validadas
-> (**[V]**). Las decisiones concretas de redacción de este ejemplo son hipótesis de
-> trabajo (**[H]**) hasta la fase 5.
+> (**[V]**); las citas posicionales y las etiquetas de plano vienen del contrato y de
+> la guía del proveedor (**[P]**, `docs/conocimiento/04_apis_y_prompting.md`); las
+> decisiones concretas de redacción son hipótesis (**[H]**) hasta la fase 5.
 
 Plano `s01_ep01_sh004` del shotlist:
 
@@ -26,10 +27,12 @@ Midday. The office door is already closed when the shot starts. She has read the
 once already.
 
 ACTIVE REFERENCES
-@char_canon-rojo_Nadia_v1 — Woman in her early forties, short black hair, a thin scar
-through the left eyebrow, grey wool coat over a dark green shirt.
-@loc_canon-rojo_Despacho_v1 — A narrow municipal office: grey filing cabinets along the
-left wall, a steel desk under a tall window, cold north light on scuffed linoleum.
+The woman in @Image1, same person from another angle in @Image2 — @char_canon-rojo_Nadia_v1
+Woman in her early forties, short black hair, a thin scar through the left eyebrow, grey
+wool coat over a dark green shirt.
+The room in @Image3 — @loc_canon-rojo_Despacho_v1
+A narrow municipal office: grey filing cabinets along the left wall, a steel desk under a
+tall window, cold north light on scuffed linoleum.
 
 LOCATION MAP
 Nadia stands left of the steel desk, the tall window behind her right shoulder, the
@@ -40,14 +43,15 @@ FIRST FRAME
 Nadia already holding the single sheet at chest height, both hands visible, the open
 envelope flat on the desk beside her.
 
-SEGMENTS
-0.0–2.0s she reads the signature line, eyes tracking left to right once.
-2.0–4.5s she lowers the sheet and speaks.
-4.5–6.0s she holds still, looking at the sheet, clean silence.
+SHOTS
+Shot 1: she reads the signature line, eyes tracking left to right once.
+Shot 2: she lowers the sheet and speaks.
+Closing: she holds still, looking at the sheet, clean silence.
 
 DIALOGUE
 Nadia: "Esta firma no es mia"
 Voice: AUDIO LOCK — low register, slow tempo, short sentences, northern accent.
+Realistic lip articulation, no exaggerated mouth opening, no head turns while speaking.
 
 PERFORMANCE
 She reads the signature line, then lowers the sheet to chest height without letting go
@@ -88,11 +92,14 @@ Text on the sheet readable = failed take.
 | Línea | Por qué |
 |---|---|
 | `SCENE CONTEXT`: «the door is already closed» | Cierra una puerta que el modelo abriría a media toma **[H]** |
+| `@Image1`/`@Image2`/`@Image3` pegados a un sustantivo | El modelo no conoce nuestros `@tag`: sólo las posiciones de `image_urls` **[P]** |
 | Los dos descriptores, enteros | R-02 **[V]**. Resumirlos cambia la cara: es el fallo número uno |
 | `LOCATION MAP`: «the camera looks north» | Fija el eje. Sin esto, el plano siguiente puede salir invertido **[V]** |
 | «She does not move from that spot» | Ancla la posición; el modelo tiende a hacer deambular **[H]** |
 | `FIRST FRAME`: «already holding» | Evita el plano que empieza vacío **[V]** |
-| `SEGMENTS` con 1 s final de silencio | R-09 **[V]**. 5 palabras = 1,25 s; el resto es lectura y cola |
+| `SHOTS` con etiquetas, no `0-5s` | Los rangos se leen como texto y el modelo los honra literalmente **[H, terceros]** |
+| 1 s final de silencio | R-09 **[V]**. 5 palabras = 1,25 s; el resto es lectura y cola |
+| Cláusula de lip-sync | El lip-sync empeora con la cámara en movimiento **[H, terceros]** |
 | `PERFORMANCE`: tarea + estado + ojos | R-07 **[V]** |
 | `CAMERA`: «One move only» | Redundante con el STYLE PREFIX, y aun así reduce el segundo movimiento **[H]** |
 | `PHYSICS`: sólo tres objetos | Los que salen. Nombrar más invoca más **[V, de R-08]** |
@@ -119,6 +126,7 @@ Diagnóstico, en el orden en que lo canta el linter:
 | `VOCABULARIO_EMOCION` (`tired`, `furious`, `devastated`) | Tres muecas encadenadas |
 | — | `becomes furious` es una transición: morphing de cara |
 | `CAMARA_MULTIPLE` | Push-in **y** tilt: el modelo hace una cosa rara a medio camino |
+| `REFERENCIA_SIN_CITAR` | Cita el `@tag` pero no `@Image1`: se mandan las URLs y el modelo puede ignorarlas **[P]** |
 | `PROMPT_NO_ES_ISLA` (`same office as the previous shot`) | El modelo no tiene el plano anterior; se inventa una oficina |
 | `PROHIBICION_SUELTA` (`no other people`, `avoid weird hands`) | Nombrar «people» y «hands» los invoca |
 | — | Sin `FIRST FRAME`: la toma empieza con la mesa vacía |

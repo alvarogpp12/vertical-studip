@@ -208,7 +208,12 @@ class PlanoPropuesto(BaseModel):
 
     orden: int = Field(ge=1)
     beat: int = Field(ge=1)
-    duracion: int = Field(ge=1, le=30, description="Segundos")
+    duracion: int = Field(ge=1, le=30, description="Segundos que se GENERAN (mínimo 4 "
+                                                    "en Seedance)")
+    duracion_montaje: int | None = Field(
+        None, ge=1, le=30,
+        description="Segundos que se usan en el montaje si son menos que los generados. "
+                    "El máster de geografía se genera a 4 s y se monta a 1 s.")
     tamano: str = Field(description="Primer plano, plano medio… (vertical: nada de planos corales)")
     camara: str = Field(description="UN solo movimiento: tilt, push-in, pull-back o fijo")
     refs: list[str] = Field(description="@tags del registro que salen en el plano")

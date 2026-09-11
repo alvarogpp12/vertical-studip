@@ -80,7 +80,8 @@ MINIMO_CARACTERES = 10_000
 REFERENCIAS = {
     "showrunner": ["01_criterios", "02_ejemplo-biblia", "03_errores"],
     "guionista": ["01_presupuesto-de-segundos", "02_ejemplo-episodio", "03_errores"],
-    "director-vertical": ["01_vocabulario", "02_ejemplo-prompt", "03_errores"],
+    "director-vertical": ["00_contrato-de-api", "01_vocabulario", "02_ejemplo-prompt",
+                          "03_errores"],
     "qc-continuidad": ["01_rubrica", "02_ejemplos"],
 }
 
@@ -104,12 +105,24 @@ def test_el_contexto_del_agente_es_lo_bastante_grande(skill: str):
 
 @pytest.mark.parametrize("skill", list(REFERENCIAS))
 def test_las_referencias_declaran_su_procedencia(skill: str):
-    """Distinguir lo validado de la hipótesis es la diferencia entre criterio e invento."""
+    """Distinguir lo documentado, lo validado y la hipótesis es lo que separa el
+    criterio del invento. [P] proveedor · [V] top 30 · [H] hipótesis."""
     for ruta in sorted((SKILLS / skill / "referencias").glob("*.md")):
         texto = ruta.read_text(encoding="utf-8")
         assert "Procedencia" in texto, f"{ruta.name} no dice de dónde sale lo que afirma"
-        assert "[V]" in texto and "[H]" in texto, (
-            f"{ruta.name} no separa lo validado de la hipótesis")
+        niveles = [n for n in ("[P]", "[V]", "[H]") if n in texto]
+        assert len(niveles) >= 2, (
+            f"{ruta.name} no separa niveles de evidencia (tiene {niveles})")
+
+
+def test_el_director_conoce_el_contrato_de_la_api():
+    """Las citas posicionales y la duración mínima no son estilo: son el contrato."""
+    texto = "\n".join(
+        r.read_text(encoding="utf-8")
+        for r in (SKILLS / "director-vertical" / "referencias").glob("*.md"))
+    assert "@Image1" in texto
+    assert "negative_prompt" in texto
+    assert "4–15 s" in texto or "4-15 s" in texto
 
 
 def test_las_referencias_viajan_en_el_prefijo_cacheado():

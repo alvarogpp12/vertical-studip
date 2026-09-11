@@ -1,9 +1,9 @@
 # El presupuesto de segundos
 
-> **Procedencia.** Las duraciones de plataforma y R-06/R-09/R-10 son **[V]**
-> (`docs/conocimiento/`). El reparto concreto por tramos y los números de planos son
-> hipótesis de trabajo (**[H]**): se corrigen con la retención real en la fase 4 del
-> roadmap.
+> **Procedencia.** **[P]** = contrato del proveedor (OpenAPI de fal, 2026-09-11 ·
+> `docs/conocimiento/04_apis_y_prompting.md`). **[V]** = validado en el top 30 y en las
+> políticas de plataforma. **[H]** = hipótesis: el reparto por tramos y los números de
+> planos se corrigen con la retención real en la fase 4.
 
 90 segundos son unos 220 segundos generados con reintentos, y eso son entre 20 y 45 $.
 Cada segundo que repartes mal se paga tres veces: en generación, en QC y en montaje.
@@ -12,7 +12,7 @@ Cada segundo que repartes mal se paga tres veces: en generación, en QC y en mon
 
 | Tramo | Seg. | Planos | Qué tiene que pasar |
 |---|---|---|---|
-| Máster de geografía | 1 | 1 | Dónde está todo. Sin diálogo, sin acción **[V, R-06]** |
+| Máster de geografía | 1 | 1 | Dónde está todo. Sin diálogo. Se **genera a 4 s** y se monta a 1 **[P]** |
 | Gancho | 3 | 1 | Una cara en plena reacción, o una frase que no se puede ignorar |
 | Planteamiento | 18 | 3–4 | Quién quiere qué y qué se lo impide |
 | Escalada | 25 | 4–6 | La táctica falla; sube el coste de fallar |
@@ -23,21 +23,32 @@ Total: 12–17 planos. Fuera de ese rango, revisa: con menos de 10 los planos so
 largos y el modelo se desordena; con más de 20 el episodio va a tirones y el coste
 por segundo aceptado se dispara.
 
-## Duración de un plano **[H]**
+## Duración de un plano
 
-| Duración | Cuándo |
-|---|---|
-| 1 s | Sólo el máster de geografía |
-| 2–3 s | Reacción, inserto, corte rápido en la escalada |
-| 4–6 s | Lo normal. Una frase y su reacción |
-| 7–8 s | Dos frases o una acción con principio y final |
-| > 8 s | Casi nunca. El modelo pierde coherencia y un fallo tardío tira toda la toma |
+**El mínimo que genera el modelo son 4 segundos** (3 en Kling) **[P]**. Todo lo que dure
+menos en pantalla se genera a 4 y se recorta con `duracion_montaje`. Eso significa que
+**un plano de 1 s cuesta lo mismo que uno de 4**: los planos muy cortos no son gratis,
+son caros por segundo usado.
+
+| En pantalla | Se genera | Cuándo |
+|---|---|---|
+| 1 s | 4 s | Sólo el máster de geografía |
+| 2–3 s | 4 s | Reacción, inserto, corte rápido en la escalada. Úsalos con cabeza |
+| 4–6 s | 4–6 s | Lo normal. Una frase y su reacción |
+| 7–8 s | 7–8 s | Dos frases o una acción con principio y final |
+| > 8 s | igual | Casi nunca. El modelo pierde coherencia y un fallo tardío tira toda la toma |
 
 **Regla económica:** un fallo a los 7 s de un plano de 8 s tira 8 s de generación. Dos
 planos de 4 s salen igual de caros de generar y la mitad de caros de repetir. Ante la
 duda, parte.
 
 ## La cuenta del diálogo **[V, R-09]**
+
+> **Contradicción abierta.** R-09 del proyecto calcula 4 palabras por segundo, o sea 60
+> en un clip de 15 s. Las pruebas de terceros que documentan Seedance hablan de **20
+> palabras habladas por 15 s y máximo 10 por línea**, y dicen que por encima el audio
+> degrada. Son cifras muy distintas y **no está medido cuál vale**. Hasta la fase 5,
+> quédate corto: una frase por plano, y si dudas, parte. **[H]**
 
 ```
 duración mínima = palabras / 4 + 1 segundo de cola limpia

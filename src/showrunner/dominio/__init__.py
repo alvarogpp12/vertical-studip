@@ -5,7 +5,7 @@
 """
 from __future__ import annotations
 
-from . import eventos, identidad, registro, serie, shotlist
+from . import eventos, identidad, memoria, referencias, registro, serie, shotlist
 from .identidad import IdPlano, Tag, id_episodio, slugify, tags_en_texto
 from .registro import Asset, Referencia, Registro, TagDesconocido
 from .serie import Aprobacion, Proyecto

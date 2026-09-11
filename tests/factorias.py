@@ -163,9 +163,22 @@ def salida_guionista_corta() -> SalidaGuionista:
     return salida_guionista(planos=planos, duracion_total=6)
 
 
-def prompt_valido(plano_refs: list[str] | None = None) -> str:
+def prompt_valido(plano_refs: list[str] | None = None,
+                  ranuras: list[str] | None = None) -> str:
+    """`ranuras` son las citas posicionales del proveedor (@Image1, @Image2…).
+
+    Por defecto una por tag; se pasan explícitas cuando un asset aporta más de una
+    imagen y por tanto ocupa más de una ranura.
+    """
     refs = plano_refs or ["@char_canon-rojo_Nadia_v1"]
-    citas = "\n".join(f"{t} — {DESCRIPTORES.get(t, DESCRIPTOR_NADIA)}" for t in refs)
+    ranuras = ranuras if ranuras is not None else [f"@Image{i + 1}" for i in range(len(refs))]
+    citas = "\n".join(
+        f"{ranuras[i] if i < len(ranuras) else ''} — {t} — "
+        f"{DESCRIPTORES.get(t, DESCRIPTOR_NADIA)}".lstrip(" —")
+        for i, t in enumerate(refs))
+    if len(ranuras) > len(refs):
+        citas += "\n" + "\n".join(
+            f"{c} — same subject, another angle" for c in ranuras[len(refs):])
     return f"""# STYLE PREFIX (inmutable durante toda la serie)
 {STYLE_PREFIX}
 
@@ -192,9 +205,10 @@ A second person entering frame = failed take.
 """
 
 
-def salida_director(refs: list[str] | None = None, **cambios) -> SalidaDirector:
+def salida_director(refs: list[str] | None = None, ranuras: list[str] | None = None,
+                    **cambios) -> SalidaDirector:
     refs = refs or ["@char_canon-rojo_Nadia_v1"]
-    datos: dict = {"prompt": prompt_valido(refs), "referencias_activas": refs,
+    datos: dict = {"prompt": prompt_valido(refs, ranuras), "referencias_activas": refs,
                    "riesgos_detectados": ["el primer fotograma podría salir vacío"]}
     datos.update(cambios)
     return SalidaDirector(**datos)

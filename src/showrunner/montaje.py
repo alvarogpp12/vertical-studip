@@ -53,7 +53,9 @@ def segmentos(lista: sl.Shotlist, estados: dict[str, ev.EstadoPlano]) -> list[Se
         if not ruta.exists():
             faltan.append(f"{plano.id} (falta {ruta})")
             continue
-        util = estado.segundos_aceptados or plano.duracion
+        # El QC manda (una toma empalmable trae sus segundos útiles); si no, lo que
+        # el plano declara para el montaje, que puede ser menos de lo generado.
+        util = estado.segundos_aceptados or plano.segundos_en_montaje
         salida.append(Segmento(plano.id, ruta, float(util), plano.dialogo))
     if faltan:
         raise SinTomas(f"sin toma aprobada: {faltan}")

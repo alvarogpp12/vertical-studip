@@ -15,9 +15,12 @@ from showrunner.dominio import registro as reg
 def _registro() -> reg.Registro:
     r = reg.Registro(serie="canon-rojo")
     r.anadir(reg.Asset(id="@char_canon-rojo_Nadia_v1", descriptor=f.DESCRIPTOR_NADIA,
-                       estado="aprobado"))
+                       estado="aprobado",
+                       referencias=[reg.Referencia(url="https://x/cara.png", tipo="cara")]))
     r.anadir(reg.Asset(id="@loc_canon-rojo_Despacho_v1", descriptor=f.DESCRIPTOR_DESPACHO,
-                       estado="aprobado", mapa="Nadia a la izquierda del escritorio."))
+                       estado="aprobado", mapa="Nadia a la izquierda del escritorio.",
+                       referencias=[reg.Referencia(url="https://x/loc.png",
+                                                   tipo="localizacion")]))
     return r
 
 
@@ -261,3 +264,13 @@ def test_el_showrunner_ve_lo_que_cuesta_rodar():
     showrunner.crear_biblia("idea", "Cañón Rojo", cliente=cliente)
     sistema = "\n".join(b["text"] for b in cliente.llamadas[0]["sistema"])
     assert "Coste por episodio" in sistema and "Creator Rewards" in sistema
+
+
+def test_el_director_recibe_el_mapa_de_ranuras_posicionales():
+    """El modelo no conoce nuestros @tag: hay que decirle que Nadia es @Image1."""
+    cliente = ClienteFalso([f.sobre(f.salida_director())])
+    director.escribir_prompt(_plano(), _registro(), biblia_md="biblia", estilo_md=STYLE_MD,
+                             serie="canon-rojo", cliente=cliente)
+    peticion = cliente.llamadas[0]["mensajes"][0]["content"]
+    assert "@Image1" in peticion and "@char_canon-rojo_Nadia_v1" in peticion
+    assert "pegada a un\n  sustantivo" in peticion or "sustantivo" in peticion

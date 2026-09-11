@@ -31,7 +31,11 @@ class Plano(BaseModel):
 
     id: str
     beat: int = 1
-    duracion: int = Field(5, ge=1, le=30)
+    duracion: int = Field(5, ge=1, le=30, description="Segundos que se generan")
+    #: Segundos que se usan en el montaje, si son menos de los generados.
+    #: Seedance no genera menos de 4 s (ver docs/conocimiento/04_apis_y_prompting.md),
+    #: así que el máster de 1 s de R-06 se pide a 4 s y se recorta aquí.
+    duracion_montaje: int | None = Field(None, ge=1, le=30)
     tamano: str = ""
     camara: str = ""
     refs: list[str] = Field(default_factory=list)
@@ -51,6 +55,10 @@ class Plano(BaseModel):
     @property
     def id_plano(self) -> IdPlano:
         return IdPlano.parse(self.id)
+
+    @property
+    def segundos_en_montaje(self) -> int:
+        return self.duracion_montaje or self.duracion
 
     @property
     def palabras_dialogo(self) -> int:
@@ -86,6 +94,10 @@ class Shotlist(BaseModel):
             if plano.id in vistos:
                 raise ValueError(f"id de plano repetido: {plano.id}")
             vistos.add(plano.id)
+            if plano.duracion_montaje and plano.duracion_montaje > plano.duracion:
+                raise ValueError(
+                    f"{plano.id}: no se puede montar {plano.duracion_montaje} s de una toma "
+                    f"de {plano.duracion} s")
             if plano.orden_montaje:
                 if plano.orden_montaje in ordenes:
                     raise ValueError(f"orden_montaje repetido: {plano.orden_montaje}")
@@ -94,6 +106,11 @@ class Shotlist(BaseModel):
 
     @property
     def duracion_total(self) -> int:
+        """Lo que dura el episodio montado, no lo que se genera."""
+        return sum(p.segundos_en_montaje for p in self.planos)
+
+    @property
+    def duracion_generada(self) -> int:
         return sum(p.duracion for p in self.planos)
 
     @property

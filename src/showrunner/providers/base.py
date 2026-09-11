@@ -8,6 +8,9 @@ from pydantic import BaseModel, Field
 
 class PeticionVideo(BaseModel):
     prompt: str
+    #: Sólo lo usan los modelos que tienen el campo (Kling). Seedance no lo tiene y
+    #: sus negativos van dentro del prompt. Ver docs/conocimiento/04_apis_y_prompting.md.
+    negative_prompt: str = ""
     duracion: int = Field(5, ge=1, le=30)
     resolucion: str = "480p"
     aspect_ratio: str = "9:16"

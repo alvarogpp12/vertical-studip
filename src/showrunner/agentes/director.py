@@ -11,6 +11,7 @@ encuadre.
 """
 from __future__ import annotations
 
+from ..dominio import referencias as refs
 from ..dominio import registro as reg
 from ..dominio.shotlist import Plano
 from ..valida import valida_prompt
@@ -44,8 +45,7 @@ def contexto_estable(biblia_md: str, estilo_md: str, registro: reg.Registro) -> 
 
 
 def _peticion(plano: Plano, registro: reg.Registro) -> str:
-    refs = "\n".join(f"- {t}: {registro.descriptor(t)}" for t in plano.refs
-                     if registro.existe(t)) or "- (ninguna)"
+    ranuras = refs.de_plano(registro, plano)
     dialogo = plano.dialogo or "(sin diálogo)"
     return f"""
 Escribe el prompt del plano {plano.id}.
@@ -55,12 +55,16 @@ Escribe el prompt del plano {plano.id}.
 - Duración: {plano.duracion} s
 - Máster de geografía: {"sí" if plano.es_master else "no"}
 - Diálogo: {dialogo}
-- Referencias activas (cópialas palabra por palabra):
-{refs}
+- Referencias que se mandan con la petición, **con el número por el que el modelo las
+  conoce**. El modelo NO conoce nuestros @tag: hay que citar la ranura, pegada a un
+  sustantivo («the woman in @Image1»), y además copiar el descriptor palabra por
+  palabra:
+{refs.mapa(ranuras, registro)}
 
 Recuerda: el prompt es una isla (nada heredado de otro plano), el STYLE PREFIX y los
-CONSTRAINTS van copiados literalmente, el audio dice "No music", y los límites se
-escriben como condición de toma fallida, no como prohibiciones sueltas.
+CONSTRAINTS van copiados literalmente, el audio dice "No music", los tiempos van como
+«Shot 1 / Shot 2 / Closing» y nunca como «0-5s», y ni «fast» ni «cinematic» aparecen
+en ningún sitio.
 """.strip()
 
 

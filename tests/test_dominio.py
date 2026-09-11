@@ -126,3 +126,19 @@ def test_minimo_de_tiktok():
     assert p.duracion_min == 45.0
     p.plataformas_secundarias = ["tiktok"]
     assert p.duracion_min == 61.0
+
+
+def test_el_master_se_genera_a_4s_y_se_monta_a_1s():
+    """Seedance no genera menos de 4 s (04_apis_y_prompting): R-06 se resuelve recortando."""
+    master = sl.Plano(id="s01_ep01_sh001", duracion=4, duracion_montaje=1, es_master=True)
+    assert master.segundos_en_montaje == 1
+    lista = sl.Shotlist(episodio="s01_ep01", planos=[
+        master, sl.Plano(id="s01_ep01_sh002", duracion=6)])
+    assert lista.duracion_total == 7          # lo que dura el episodio montado
+    assert lista.duracion_generada == 10      # lo que se paga
+
+
+def test_no_se_puede_montar_mas_de_lo_generado():
+    with pytest.raises(ValidationError):
+        sl.Shotlist(episodio="s01_ep01",
+                    planos=[sl.Plano(id="s01_ep01_sh001", duracion=4, duracion_montaje=6)])

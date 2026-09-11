@@ -14,6 +14,7 @@ import re
 import unicodedata
 
 from ..config import cargar_denylist
+from ..dominio import referencias as refs
 from ..dominio.identidad import RE_TAG, tags_en_texto
 from ..dominio.registro import Registro
 from ..dominio.shotlist import Plano
@@ -32,6 +33,10 @@ SIN_MUSICA = re.compile(r"\bno\s+music\b", re.IGNORECASE)
 
 #: El bloque CONSTRAINTS habla de «@tag references» en abstracto: no es un tag.
 MARCADORES = {"@tag", "@tags"}
+#: Citas posicionales del proveedor: @Image1, @Video1, @Audio1, @Element1 (Kling).
+RE_CITA = re.compile(r"@(Image|Video|Audio|Element)(\d+)")
+#: Rangos de tiempo literales. El modelo los lee como texto e intenta honrarlos.
+RE_RANGO = re.compile(r"\b\d+(?:[.,]\d+)?\s*[-–]\s*\d+(?:[.,]\d+)?\s*s\b", re.IGNORECASE)
 
 
 def _norm(texto: str) -> str:
@@ -97,7 +102,8 @@ def valida_prompt(texto: str, *, style_md: str = "", registro: Registro | None =
     for copiado in (bloques_de_estilo(style_md).values() if style_md else []):
         if copiado:
             sin_estilo = sin_estilo.replace(copiado.strip(), " ")
-    tags = [t for t in tags_en_texto(sin_estilo) if t not in MARCADORES]
+    tags = [t for t in tags_en_texto(sin_estilo)
+            if t not in MARCADORES and not RE_CITA.fullmatch(t)]
     for tag in tags:
         if not RE_TAG.match(tag):
             r.error("TAG_MAL_FORMADO", f"{tag} no sigue el formato @tipo_serie_Nombre_vN", "R-01")
@@ -112,6 +118,25 @@ def valida_prompt(texto: str, *, style_md: str = "", registro: Registro | None =
             r.error("DESCRIPTOR_NO_LITERAL",
                     f"el descriptor congelado de {tag} no está copiado palabra por palabra",
                     "R-02", descriptor[:160])
+
+    # Citas posicionales: el modelo no conoce nuestros @tag, sólo @Image1, @Image2…
+    # («Refer to them in the prompt as @Image1, @Image2, etc.», esquema de fal).
+    if plano is not None and registro is not None:
+        ranuras = refs.de_plano(registro, plano)
+        esperadas = refs.citas_esperadas(ranuras)
+        citadas = {f"@{m[0]}{m[1]}" for m in RE_CITA.findall(texto)}
+        sin_citar = [c for c in esperadas if c not in citadas]
+        if sin_citar:
+            r.error("REFERENCIA_SIN_CITAR",
+                    f"se mandan {len(esperadas)} referencias y el prompt no cita {sin_citar}. "
+                    "El modelo no conoce nuestros @tag: sin la cita posicional puede "
+                    "ignorar la imagen", "R-01")
+        fuera = [c for c in citadas
+                 if c.startswith("@Image") and int(c.removeprefix("@Image")) > len(esperadas)]
+        if fuera:
+            r.error("CITA_FUERA_DE_RANGO",
+                    f"el prompt cita {sorted(fuera)} y sólo se mandan {len(esperadas)} imágenes",
+                    "R-01")
 
     # El prompt debe cubrir exactamente las referencias que el shotlist declara
     if plano is not None:
@@ -145,12 +170,24 @@ def valida_prompt(texto: str, *, style_md: str = "", registro: Registro | None =
         r.error("VOCABULARIO_PLATAFORMA",
                 f"caras, voces o IP ajena: {plataforma}. Las plataformas lo desmonetizan", "R-08")
 
+    # Vocabulario que degrada la calidad (guía oficial de Seedance)
+    degradan = _terminos_presentes(ascii_plano, lista.get("degradan", []))
+    if degradan:
+        r.error("VOCABULARIO_QUE_DEGRADA",
+                f"palabras que degradan la generación: {degradan}. «fast» es la peor; "
+                "«cinematic» o «epic» son vagas y el modelo rellena a su gusto",
+                "prompting")
+
     # R-02 · cada prompt es una isla
     herencia = _terminos_presentes(ascii_plano, lista.get("herencia", []))
     if herencia:
         r.error("PROMPT_NO_ES_ISLA",
                 f"referencias heredadas de otro plano: {herencia}", "R-02")
-    if re.search(r"\b(?:escena|scene|shot|plano)\s+\d+\b", ascii_plano):
+    if RE_RANGO.search(texto):
+        r.error("RANGO_DE_TIEMPO",
+                "los rangos tipo «0-5s:» se leen como texto y el modelo intenta honrarlos "
+                "literalmente. Usa etiquetas: «Shot 1: … Shot 2: … Closing: …»", "prompting")
+    if re.search(r"\b(?:escena|scene|plano)\s+\d+\b", ascii_plano):
         r.aviso("NUMERO_DE_ESCENA",
                 "el prompt menciona un número de escena o de plano; cada prompt es una isla",
                 "R-02")

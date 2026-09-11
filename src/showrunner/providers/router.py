@@ -36,7 +36,9 @@ def elegir_modelo(nivel: str, p: PeticionVideo, excluir_mock: bool = True) -> st
             continue
         if spec["nivel"] != nivel or p.resolucion not in spec["precio_seg"]:
             continue
-        if p.duracion > spec["max_duracion"]:
+        if p.duracion > spec["max_duracion"] or p.duracion < spec.get("min_duracion", 1):
+            continue
+        if spec.get("requiere_imagen_inicial") and not (p.primer_fotograma or p.imagenes):
             continue
         refs = spec["referencias"]
         if len(p.imagenes) > refs["imagenes"] or len(p.videos) > refs["videos"]:

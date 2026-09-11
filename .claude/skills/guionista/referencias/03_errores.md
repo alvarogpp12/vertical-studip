@@ -1,7 +1,7 @@
 # Catálogo de fallos del guionista
 
-> **Procedencia.** Los códigos y las reglas son **[V]**; los diagnósticos, hipótesis
-> de trabajo (**[H]**).
+> **Procedencia.** **[P]** = contrato del proveedor · **[V]** = códigos y reglas del
+> proyecto · **[H]** = diagnósticos, hipótesis de trabajo.
 
 Un fallo aquí se paga abajo: el director escribe un prompt correcto de un plano que no
 se puede rodar, y se descubre después de pagarlo.
@@ -11,7 +11,8 @@ se puede rodar, y se descubre después de pagarlo.
 | `EPISODIO_CORTO` | Faltan beats de escalada | Añade planos de reacción entre las tácticas, no alargues los que hay |
 | `EPISODIO_LARGO` | Un beat que no cambia el valor | Corta el beat entero, no le quites segundos a todos |
 | `DIALOGO_NO_CABE` | La frase se escribió sin contar palabras | Parte el plano por la coma; nunca aceleres |
-| `SIN_MASTER` / `MASTER_NO_ES_EL_PRIMERO` | Se empezó por el gancho | El máster de 1 s va antes; el gancho es el plano 2 |
+| `SIN_MASTER` / `MASTER_NO_ES_EL_PRIMERO` | Se empezó por el gancho | El máster va antes; el gancho es el plano 2 |
+| `DURACION_BAJO_MODELO` | Se pidió un plano de menos de 4 s | El modelo no los genera: `duracion: 4` + `duracion_montaje: 1` |
 | `MASTER_CON_DIALOGO` | El máster hace doble función | El máster no habla: fija geografía y ya |
 | `CAMARA_MULTIPLE` | «push-in y luego tilt» | Son dos planos |
 | `CAMARA_PROHIBIDA` | Gramática de 16:9 | Tilt, push-in, pull-back o fijo |

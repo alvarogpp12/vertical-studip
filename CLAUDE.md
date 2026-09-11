@@ -63,7 +63,9 @@ Validadas en ≥ 2 producciones del top 30 de Higgsfield. Detalle en `docs/conoc
 - **Nada se genera sin pasar el linter** (`showrunner valida prompt`). Corre también como hook `PreToolUse`.
 - **Los agentes son funciones tipadas**, no sesiones: `(entrada, contexto) -> Resultado | Rechazo`. Las llamadas caras (vídeo, imagen) van siempre fuera del agente.
 - **Los `SKILL.md` son el system prompt de cada agente**, y sus `referencias/*.md` van detrás, dentro del mismo prefijo cacheado. El SKILL dice *qué hacer*; las referencias enseñan *cómo se piensa*: criterios con números, ejemplos completos comentados, vocabulario y catálogo de fallos. Una sola fuente: se afinan a mano en Claude Code y el pipeline las carga.
-- **Toda referencia separa lo validado de la hipótesis** (`[V]` / `[H]`). Un agente con criterio inventado produce material mediocre a toda velocidad.
+- **Toda referencia separa los niveles de evidencia**: `[P]` documentación del proveedor · `[V]` validado en ≥2 producciones del top 30 · `[H]` hipótesis sin verificar. Un agente con criterio inventado produce material mediocre a toda velocidad.
+- **Las referencias se citan por posición en el prompt** (`@Image1`, `@Image2`): el modelo no conoce nuestros `@tag`. El orden lo fija `dominio/referencias.py`, y lo usan el director y el proveedor.
+- **Ningún modelo de vídeo genera menos de 4 s.** Un plano más corto se pide a 4 y se recorta: `duracion` es lo que se paga, `duracion_montaje` lo que dura en pantalla.
 - **Un agente no inventa ids** (de plano ni de asset): los genera el código.
 - **Antes de cada llamada cara, huella de contenido** (`sha256` de modelo + parámetros + referencias + plano). Un rerun no vuelve a pagar lo ya generado.
 - **Dos límites de gasto distintos**: el tope diario (`BUDGET_MAX_PER_DAY`) y el fusible de cada ejecución (`--max-gasto`).
@@ -121,6 +123,7 @@ docs/ESTADO.md                 estado vivo del proyecto (actualizar siempre)
 docs/PLAN_ACCIONES.md          acciones que hace el usuario (cuentas, claves)
 docs/FLUJO_DE_TRABAJO.md       git, ramas, PR
 docs/conocimiento/             investigación: sistema, objetivo, proveedores, plataformas
+docs/conocimiento/04_apis_y_prompting.md  contratos reales de API y guías de los proveedores
 config/modelos.yaml            catálogo de modelos (vídeo e imagen), niveles y precios
 config/denylist.yaml           vocabulario prohibido en prompts (emociones, filtros, plataforma)
 src/showrunner/cli.py          comandos

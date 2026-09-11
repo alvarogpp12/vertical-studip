@@ -50,8 +50,10 @@ Escribe el episodio {id_episodio} de «{proyecto.titulo}».
 Punto de partida (de la sinopsis): {sinopsis or "(libre, respetando la biblia)"}
 
 Restricciones duras:
-- Duración total {proyecto.duracion_objetivo_min}–{proyecto.duracion_objetivo_max} s. El primer
-  plano es un máster de 1 s que fija la geografía (R-06).
+- Duración total {proyecto.duracion_objetivo_min}–{proyecto.duracion_objetivo_max} s, contando
+  lo que dura el episodio MONTADO.
+- El modelo de vídeo no genera menos de 4 s. El máster de geografía (R-06) se pide con
+  `duracion: 4` y `duracion_montaje: 1`: se genera lo mínimo y se recorta en el montaje.
 - Gancho en los primeros 3 s y cliffhanger al final.
 - Cada plano: UN solo movimiento de cámara (tilt, push-in, pull-back o fijo). Nada de
   travellings laterales, cámara en mano ni planos corales: es vertical.
@@ -101,6 +103,7 @@ def a_shotlist(salida: SalidaGuionista, id_episodio: str) -> sl.Shotlist:
             id=str(IdPlano(temporada, numero, posicion)),
             beat=propuesto.beat,
             duracion=propuesto.duracion,
+            duracion_montaje=propuesto.duracion_montaje,
             tamano=propuesto.tamano,
             camara=propuesto.camara,
             refs=propuesto.refs,

@@ -70,9 +70,15 @@ def valida_plano(plano: Plano, *, registro: Registro | None = None, modelo: str 
         for tag in plano.refs:
             if not registro.existe(tag):
                 r.error("TAG_NO_REGISTRADO", f"{tag} no está en registry.json", "R-01")
-            elif registro.resolver(tag).estado != "aprobado":
-                r.aviso("ASSET_NO_APROBADO",
-                        f"{tag} está en estado «{registro.resolver(tag).estado}»", "R-01")
+            else:
+                asset = registro.resolver(tag)
+                if asset.estado != "aprobado":
+                    r.aviso("ASSET_NO_APROBADO", f"{tag} está en estado «{asset.estado}»", "R-01")
+                publicas = [u for u in asset.urls if u.startswith(("http://", "https://"))]
+                if asset.referencias and not publicas:
+                    r.aviso("REFERENCIA_NO_PUBLICA",
+                            f"las referencias de {tag} son rutas locales: el modelo no puede "
+                            "leerlas y el plano se generará sin ellas", "R-01")
 
     # La duración tiene que caber en el modelo elegido
     if modelo:
@@ -84,6 +90,12 @@ def valida_plano(plano: Plano, *, registro: Registro | None = None, modelo: str 
                 r.error("DURACION_SOBRE_MODELO",
                         f"{modelo} genera como mucho {spec['max_duracion']} s "
                         f"y el plano pide {plano.duracion} s")
+            minimo = spec.get("min_duracion", 1)
+            if plano.duracion < minimo:
+                r.error("DURACION_BAJO_MODELO",
+                        f"{modelo} no genera menos de {minimo} s y el plano pide "
+                        f"{plano.duracion} s. Genera {minimo} s y recorta en el montaje",
+                        "R-06" if plano.es_master else "")
             if spec["nivel"] != plano.nivel:
                 r.aviso("NIVEL_DISTINTO",
                         f"el plano pide nivel «{plano.nivel}» y {modelo} es de nivel "

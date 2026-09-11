@@ -30,6 +30,7 @@ from .agentes import showrunner as ag_showrunner
 from .agentes.cliente import LLMNoDisponible
 from .config import ROOT
 from .dominio import eventos as ev
+from .dominio import referencias as refs_mod
 from .dominio import registro as reg
 from .dominio import serie as ser
 from .dominio import shotlist as sl
@@ -237,7 +238,8 @@ class Orquestador:
     def generar_plano(self, plano: sl.Plano, prompt: str, *, id_episodio: str) -> Paso:
         """Una toma, con huella de contenido, fusible y registro. Idempotente."""
         registro = self.registro
-        refs = registro.urls(*[t for t in plano.refs if registro.existe(t)])
+        # Mismo orden que las citas @ImageN del prompt: lo calcula un solo módulo.
+        refs = refs_mod.urls(refs_mod.de_plano(registro, plano))
         peticion = PeticionVideo(prompt=prompt, duracion=plano.duracion,
                                  resolucion=self.politica.resolucion, imagenes=refs)
         modelo = self.politica.modelo_video or elegir_modelo(self.politica.nivel, peticion)

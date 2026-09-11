@@ -87,3 +87,19 @@ herencia:
   - as before
   - continuing from
   - continues from
+
+# Palabras que degradan la calidad según la guía oficial de Seedance
+# (docs/conocimiento/04_apis_y_prompting.md §4). "fast" es la peor: movimiento rápido
+# + cortes rápidos + escena cargada ≈ jitter y artefactos garantizados. Las demás son
+# vagas: el modelo rellena con lo que quiere y la varianza se paga en reintentos.
+degradan:
+  - fast
+  - very fast
+  - quickly
+  - rapid
+  - cinematic
+  - epic
+  - amazing
+  - stunning
+  - lots of movement
+  - dynamic movement

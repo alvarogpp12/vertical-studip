@@ -22,8 +22,12 @@ REFS_POR_PLANO = [["@loc_canon-rojo_Despacho_v1"],
 def _cliente(corto: bool = True) -> ClienteFalso:
     """Un showrunner, un guionista y un director por plano, en ese orden."""
     guion = f.salida_guionista_corta() if corto else f.salida_guionista()
+    # `ranuras=[]`: el casting de los tests corre con --no-subir, así que las
+    # referencias son rutas locales. El modelo no puede leerlas, no ocupan ranura y
+    # el prompt no debe citar ninguna @ImageN.
     return ClienteFalso([f.sobre(f.salida_showrunner()), f.sobre(guion),
-                         *[f.sobre(f.salida_director(refs)) for refs in REFS_POR_PLANO]])
+                         *[f.sobre(f.salida_director(refs, ranuras=[]))
+                           for refs in REFS_POR_PLANO]])
 
 
 def _politica(**cambios) -> Politica:
@@ -160,7 +164,7 @@ def test_el_prompt_guardado_se_rehace_si_deja_de_pasar_el_linter(serie):
 
     orq = Orquestador("canon-rojo", _desatendida(),
                       cliente=ClienteFalso([f.sobre(
-                          f.salida_director(["@char_canon-rojo_Nadia_v1"]))]))
+                          f.salida_director(["@char_canon-rojo_Nadia_v1"], ranuras=[]))]))
     lista = orq.shotlist("s01_ep01")
     texto = orq._prompt(lista.plano("s01_ep01_sh002"), orq.registro,
                         (serie / "biblia.md").read_text(encoding="utf-8"),

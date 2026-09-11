@@ -1,4 +1,6 @@
 # Catálogo de modelos. Precios en USD por segundo generado (estimados 2026-09-11).
+# Los límites (min/max duración, referencias, negativo) salen del OpenAPI de fal
+# consultado el 2026-09-11: ver docs/conocimiento/04_apis_y_prompting.md.
 # estado: confirmado = visto en la web del proveedor · estimado = fuente secundaria · verificar = rellenar/probar
 # nivel: borrador | trabajo | clave  (el router elige el más barato del nivel pedido)
 
@@ -8,8 +10,11 @@ modelos:
     model_env: ARK_MODEL_SEEDANCE_20_FAST
     nivel: borrador
     precio_seg: {480p: 0.040, 720p: 0.091}
+    min_duracion: 4          # el contrato no admite menos
     max_duracion: 15
     referencias: {imagenes: 9, videos: 3, audios: 3}
+    citas_posicionales: true  # "@Image1, @Image2…" dentro del prompt
+    negativo: false           # no tiene campo negative_prompt
     estado: estimado
 
   seedance-2.0@byteplus:
@@ -17,8 +22,11 @@ modelos:
     model_env: ARK_MODEL_SEEDANCE_20
     nivel: trabajo
     precio_seg: {480p: 0.067, 720p: 0.151}
+    min_duracion: 4
     max_duracion: 15
     referencias: {imagenes: 9, videos: 3, audios: 3}
+    citas_posicionales: true
+    negativo: false
     estado: estimado
 
   seedance-2.5@byteplus:
@@ -26,8 +34,11 @@ modelos:
     model_env: ARK_MODEL_SEEDANCE_25
     nivel: clave
     precio_seg: {480p: 0.103, 720p: 0.231}
+    min_duracion: 4
     max_duracion: 30
     referencias: {imagenes: 30, videos: 10, audios: 10}
+    citas_posicionales: true
+    negativo: false
     estado: estimado
 
   kling-3.0-standard@fal:
@@ -35,8 +46,13 @@ modelos:
     endpoint: fal-ai/kling-video/v3/standard/image-to-video
     nivel: trabajo
     precio_seg: {720p: 0.126}
+    min_duracion: 3
     max_duracion: 15
     referencias: {imagenes: 1, videos: 0, audios: 0}
+    requiere_imagen_inicial: true   # start_image_url es obligatorio en este endpoint
+    citas_posicionales: false       # usa @Element1 sobre `elements`, no @ImageN
+    negativo: true                  # negative_prompt, por defecto "blur, distort, and low quality"
+    prompt_max_caracteres: 2500
     estado: confirmado
 
   seedance-2.5@fal:
@@ -44,14 +60,18 @@ modelos:
     endpoint: bytedance/seedance-2.5/reference-to-video
     nivel: clave
     precio_seg: {480p: 0.2205, 720p: 0.473}
+    min_duracion: 4
     max_duracion: 30
     referencias: {imagenes: 30, videos: 10, audios: 10}
+    citas_posicionales: true
+    negativo: false
     estado: confirmado   # respaldo si BytePlus no está disponible (2x más caro)
 
   mock:
     proveedor: mock
     nivel: borrador
     precio_seg: {480p: 0.0, 720p: 0.0}
+    min_duracion: 1
     max_duracion: 30
     referencias: {imagenes: 50, videos: 10, audios: 10}
     estado: confirmado   # genera un clip de prueba local con ffmpeg, sin coste
