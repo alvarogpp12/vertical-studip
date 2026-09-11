@@ -9,9 +9,12 @@ from .sonda import sondear
 
 def extraer(video: Path, carpeta: Path, cada_seg: float = 2.0) -> list[Path]:
     carpeta.mkdir(parents=True, exist_ok=True)
-    dur = sondear(video)["duracion"]
-    fin = max(dur - 0.05, 0.0)  # el ultimo fotograma esta antes de dur; pedir dur exacto no devuelve nada
-    tiempos = sorted({0.0, round(dur / 2, 2), fin}
+    info = sondear(video)
+    dur = info["duracion"]
+    # "-ss T" antes de "-i" descarta los fotogramas con PTS < T, asi que ningun instante puede
+    # pasar del PTS del ultimo fotograma: duracion del stream de video menos un intervalo.
+    fin = max(info["duracion_video"] - 1 / max(info["fps"], 1), 0.0)
+    tiempos = sorted({0.0, min(round(dur / 2, 2), fin), fin}
                      | {min(round(t * cada_seg, 2), fin) for t in range(int(dur // cada_seg) + 1)})
     rutas = []
     for t in tiempos:
