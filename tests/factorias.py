@@ -139,9 +139,33 @@ def salida_guionista(**cambios) -> SalidaGuionista:
     return SalidaGuionista(**datos)
 
 
+#: tag → descriptor congelado, tal y como están en el registro de prueba.
+DESCRIPTORES = {
+    "@char_canon-rojo_Nadia_v1": DESCRIPTOR_NADIA,
+    "@loc_canon-rojo_Despacho_v1": DESCRIPTOR_DESPACHO,
+}
+
+
+def salida_guionista_corta() -> SalidaGuionista:
+    """Episodio de 6 s: sirve para todo menos para comprobar el mínimo de TikTok.
+
+    Los tests que no miden la duración lo usan para no pasarse un minuto
+    recodificando vídeo de prueba.
+    """
+    planos = [
+        PlanoPropuesto(orden=1, beat=1, duracion=1, tamano="plano general", camara="fijo",
+                       refs=["@loc_canon-rojo_Despacho_v1"], es_master=True),
+        PlanoPropuesto(orden=2, beat=1, duracion=3, tamano="primer plano", camara="push-in",
+                       refs=["@char_canon-rojo_Nadia_v1"], dialogo="No es mia"),
+        PlanoPropuesto(orden=3, beat=3, duracion=2, tamano="plano medio", camara="tilt",
+                       refs=["@char_canon-rojo_Nadia_v1"]),
+    ]
+    return salida_guionista(planos=planos, duracion_total=6)
+
+
 def prompt_valido(plano_refs: list[str] | None = None) -> str:
     refs = plano_refs or ["@char_canon-rojo_Nadia_v1"]
-    citas = "\n".join(f"{t} — {DESCRIPTOR_NADIA}" for t in refs)
+    citas = "\n".join(f"{t} — {DESCRIPTORES.get(t, DESCRIPTOR_NADIA)}" for t in refs)
     return f"""# STYLE PREFIX (inmutable durante toda la serie)
 {STYLE_PREFIX}
 
@@ -168,9 +192,9 @@ A second person entering frame = failed take.
 """
 
 
-def salida_director(**cambios) -> SalidaDirector:
-    datos: dict = {"prompt": prompt_valido(),
-                   "referencias_activas": ["@char_canon-rojo_Nadia_v1"],
+def salida_director(refs: list[str] | None = None, **cambios) -> SalidaDirector:
+    refs = refs or ["@char_canon-rojo_Nadia_v1"]
+    datos: dict = {"prompt": prompt_valido(refs), "referencias_activas": refs,
                    "riesgos_detectados": ["el primer fotograma podría salir vacío"]}
     datos.update(cambios)
     return SalidaDirector(**datos)

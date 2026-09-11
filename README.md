@@ -51,7 +51,9 @@ Claude Code lee [CLAUDE.md](CLAUDE.md) automáticamente: objetivo, decisiones, r
 | Skills del agente | director-vertical v0.1 · qc-continuidad v0.1 · showrunner v0.0 | 🧱 |
 | Agentes (showrunner, guionista, director, QC) | Funciones tipadas con salida estructurada y canal de rechazo | ✅ pendiente de 1.ª llamada real |
 | Evaluación | Un script por agente, rúbrica de `docs/conocimiento/`, acuerdo juez–humano | ✅ |
-| Orquestador autónomo, montaje, publicación | Claude Agent SDK + FFmpeg + APIs de plataformas | ⏳ |
+| Orquestador | Máquina de estados con gates humanos, idempotencia por huella y fusible de gasto | ✅ |
+| Montaje | Concatena las tomas aprobadas, escala a 1080×1920 y saca el `.srt` | ✅ |
+| Publicación | APIs de plataformas con etiqueta de IA + analítica de retención | ⏳ |
 
 ### Niveles de generación
 | Nivel | Modelo | Precio aprox. (USD/s) | Uso |
@@ -78,6 +80,8 @@ uv run showrunner estado --serie mi-serie                        # intentos, cos
 uv run showrunner biblia "Mi serie" --idea "Una frase con la idea"   # agente showrunner
 uv run showrunner guion mi-serie --episodio s01_ep01                 # agente guionista
 uv run showrunner prompts mi-serie --episodio s01_ep01               # agente director
+uv run showrunner plan mi-serie                                       # sin gastar
+uv run showrunner producir mi-serie --episodio s01_ep01 --max-gasto 5 # hasta el siguiente gate
 uv run python evals/eval_director.py                                 # evaluación, gratis
 ```
 
@@ -90,7 +94,7 @@ src/showrunner/dominio/   contratos: ids, registro, shotlist, proyecto, log de e
 src/showrunner/valida/    linter determinista: prompt, plano, toma, episodio, biblia
 src/showrunner/agentes/   los 4 agentes que deciden (el resto es código determinista)
 evals/                    evaluación por agente, con golden sets etiquetados
-src/showrunner/           código: proveedores, router, casting, qc, cli
+src/showrunner/           código: proveedores, router, casting, orquestador, montaje, qc, cli
 templates/proyecto/       plantilla de cada serie
 proyectos/<serie>/        una carpeta por serie
 .claude/                  skills y permisos de Claude Code

@@ -2,7 +2,7 @@
 > Claude Code: lee este archivo al empezar cada sesión y actualízalo al terminar (qué se hizo, qué falta, bloqueos).
 
 ## Última actualización
-2026-09-11 · Fases A–E de la arquitectura de agentes: núcleo de datos, validadores, casting, los cuatro agentes y su evaluación. 97 tests y `ruff` en verde.
+2026-09-11 · Fases A–G de la arquitectura de agentes: núcleo de datos, validadores, casting, los cuatro agentes con su evaluación, y el orquestador con montaje. 105 tests y `ruff` en verde.
 
 ## Hecho
 - Investigación: sistema director, 12 reglas del top 30 de Higgsfield, vertical 9:16, proveedores y costes, políticas de plataformas.
@@ -48,10 +48,21 @@
 - [ ] Primera llamada real al agente showrunner con tus 3 ideas.
 - [ ] **Etiquetar `evals/casos/ideas.jsonl`** tras leer las biblias que salgan. Sin etiquetas no hay acuerdo juez–humano que medir.
 - [ ] Comprobar en la primera llamada real que `usage.cache_read_input_tokens` no es 0: un invalidador silencioso de caché no da error, sólo cuesta dinero.
+- [ ] Primer piloto con modelos reales: `showrunner producir <serie> --max-gasto 5 --nivel borrador`. El orquestador ya está probado de punta a punta con mocks; lo que falta es la primera factura de verdad para reconciliar el coste estimado con el real.
 
-## Pendiente · fases F y G del plan de agentes
-- F · Orquestador interactivo: máquina de estados sobre el log, idempotencia por content-addressing (`sha256(modelo + params + refs)`) para no regenerar 30 $ de vídeo en un rerun, y los tres controles humanos como gates.
-- G · Desatendido, encima de lo anterior y sin tocar los agentes.
+### Fase F–G · Orquestador y montaje
+- `orquestador.py` es una máquina de estados **sin LLM**: no juzga contenido, sólo decide qué toca y cuándo parar.
+- **Idempotencia por huella de contenido**: antes de cada llamada cara se calcula `sha256(modelo + parámetros + referencias + plano)`. Si esa huella ya se generó con éxito, se reutiliza el archivo. Un rerun no vuelve a pagar. La huella lleva el plano dentro a propósito: dos planos con el mismo prompt no comparten toma (el episodio tendría un clip repetido), y un reintento tras un rechazo sí vuelve a rodar, porque es una tirada nueva y no un rerun.
+- **Dos fusibles distintos**: el tope diario de `.env` y el `--max-gasto` de cada ejecución.
+- **Los tres controles humanos son estados**, no una conversación. `showrunner plan` dice dónde está la serie y qué comando toca, sin gastar nada.
+- **Modo desatendido (fase G) sin tocar los agentes**: es una `Politica`. No finge una firma humana: registra que la aprobación fue automática **bajo la política de una persona con nombre**. Sin responsable, no hay modo desatendido.
+- `montaje.py` concatena las tomas aprobadas, escala a 1080×1920 (se genera a 720p como mucho y se escala en local, que es gratis) y deja el `.srt` aparte, porque el quinto inferior se reserva para los subtítulos de la plataforma.
+- Falta de credencial del LLM = paso bloqueado con su remedio, no una traza.
+- La plantilla ya no trae un `shotlist.json` de ejemplo: lo escribe el guionista, y el de la plantilla traía además la convención de ids antigua.
+- **Verificación**: un episodio piloto completo (idea → biblia → casting → guion → prompts → tomas → montaje) corre de punta a punta en los tests con proveedores mock, sale a 1080×1920 y dura más de 61 s.
+
+## Pendiente · fase 4 · Publicación
+- APIs de TikTok, YouTube y Meta con etiqueta de IA, y analítica de retención de vuelta a la sala de guion.
 
 ## Pendiente del usuario
 - 3 ideas de serie (1–3 frases) · plataforma principal · presupuesto del primer mes.

@@ -9,6 +9,7 @@ from rich.table import Table
 
 from . import casting as casting_mod
 from . import proyecto
+from .agentes.cliente import LLMNoDisponible
 from .config import ROOT, cargar_modelos, cargar_modelos_imagen, env
 from .dominio import eventos as ev
 from .dominio import registro as reg
@@ -26,6 +27,12 @@ casting_app = typer.Typer(help="Preproducción de assets y registry.json", no_ar
 app.add_typer(valida_app, name="valida")
 app.add_typer(casting_app, name="casting")
 con = Console()
+
+
+def _sin_clave(e: Exception) -> None:
+    con.print(f"[red]{e}[/red]\nRellena ANTHROPIC_API_KEY en .env; "
+              "`showrunner doctor` te dice qué falta.")
+    raise typer.Exit(3)
 
 
 def _pinta(informe, titulo: str) -> None:
@@ -288,8 +295,11 @@ def biblia(
         con.print(f"Serie creada: {base.relative_to(ROOT)}")
     proy = ser.cargar(base / "proyecto.json")
     con.print("Llamando al showrunner (claude-opus-5, effort xhigh)…")
-    sobre = ag.crear_biblia(idea, titulo, plataforma=plataforma, n_episodios=episodios,
-                            proyecto=proy)
+    try:
+        sobre = ag.crear_biblia(idea, titulo, plataforma=plataforma, n_episodios=episodios,
+                                proyecto=proy)
+    except LLMNoDisponible as e:
+        _sin_clave(e)
     if not sobre.ok:
         con.print(f"[red]Rechazo[/red] [{sobre.rechazo.motivo_codigo}] → "
                   f"{sobre.rechazo.destinatario}: {sobre.rechazo.detalle}")
@@ -316,11 +326,14 @@ def guion(serie: str, episodio: str = typer.Option("s01_ep01"),
                   f"`showrunner aprobar {serie} biblia --por tu-nombre`.")
         raise typer.Exit(2)
     con.print("Llamando al guionista (claude-opus-5, effort high)…")
-    sobre = ag.escribir_episodio(
-        (base / "biblia.md").read_text(encoding="utf-8"),
-        (base / "style.md").read_text(encoding="utf-8"),
-        reg.cargar(base / "registry.json"),
-        id_episodio=episodio, proyecto=proy, sinopsis=sinopsis)
+    try:
+        sobre = ag.escribir_episodio(
+            (base / "biblia.md").read_text(encoding="utf-8"),
+            (base / "style.md").read_text(encoding="utf-8"),
+            reg.cargar(base / "registry.json"),
+            id_episodio=episodio, proyecto=proy, sinopsis=sinopsis)
+    except LLMNoDisponible as e:
+        _sin_clave(e)
     if not sobre.ok:
         con.print(f"[red]Rechazo[/red] [{sobre.rechazo.motivo_codigo}] → "
                   f"{sobre.rechazo.destinatario}: {sobre.rechazo.detalle}")
@@ -356,8 +369,11 @@ def prompts(serie: str, episodio: str = typer.Option("s01_ep01"),
         if salida_md.exists() and not sobrescribir:
             con.print(f"  {ficha.id}: ya existe, se salta")
             continue
-        sobre = ag.escribir_prompt(ficha, registro, biblia_md=biblia_md, estilo_md=estilo,
-                                   serie=serie)
+        try:
+            sobre = ag.escribir_prompt(ficha, registro, biblia_md=biblia_md, estilo_md=estilo,
+                                       serie=serie)
+        except LLMNoDisponible as e:
+            _sin_clave(e)
         if not sobre.ok:
             rechazados += 1
             con.print(f"  [red]{ficha.id}[/red] [{sobre.rechazo.motivo_codigo}] "
@@ -368,6 +384,92 @@ def prompts(serie: str, episodio: str = typer.Option("s01_ep01"),
     con.print(f"Gasto acumulado hoy: {ev.gasto_hoy():.4f} $")
     if rechazados:
         raise typer.Exit(2)
+
+
+# ------------------------------------------------------------ orquestador
+@app.command()
+def plan(serie: str, episodio: str = typer.Option("s01_ep01")):
+    """Dónde está la serie y cuál es el siguiente paso. No ejecuta nada ni gasta."""
+    from .orquestador import Orquestador
+
+    for paso in Orquestador(serie).diagnostico(episodio):
+        con.print(str(paso))
+        if paso.estado.value != "hecho" and paso.accion:
+            con.print(f"    [dim]{paso.accion}[/dim]")
+
+
+@app.command()
+def producir(
+    serie: str,
+    episodio: str = typer.Option("s01_ep01"),
+    idea: str = typer.Option("", help="Sólo si la serie aún no tiene biblia"),
+    nivel: str = typer.Option("borrador", help="borrador | trabajo | clave"),
+    resolucion: str = typer.Option("480p"),
+    max_gasto: float = typer.Option(10.0, help="Fusible de ESTA ejecución, en USD"),
+    modelo_video: str = typer.Option("", help="Fuerza un modelo; «mock» no cuesta nada"),
+    modelo_imagen: str = typer.Option(""),
+    desatendido: str = typer.Option("", help="Nombre de quien se hace responsable; "
+                                             "aprueba los gates automáticamente"),
+    montar: bool = typer.Option(True, help="Montar el episodio al terminar"),
+    subir: bool = typer.Option(True, help="Subir las referencias del casting a una URL pública"),
+):
+    """Avanza la serie hasta el siguiente control humano y para.
+
+    Idempotente: una toma con la misma huella (modelo + parámetros + referencias)
+    no se vuelve a generar ni a pagar.
+    """
+    from .orquestador import Politica
+    from .orquestador import producir as ejecutar
+
+    if desatendido:
+        politica = Politica.desatendida(desatendido, max_gasto_usd=max_gasto, nivel=nivel,
+                                        resolucion=resolucion, modelo_video=modelo_video,
+                                        modelo_imagen=modelo_imagen, subir_referencias=subir)
+        con.print(f"[yellow]Modo desatendido[/yellow] bajo la responsabilidad de {desatendido}: "
+                  "los gates se aprueban solos y queda registrado que fue automático.")
+    else:
+        politica = Politica(max_gasto_usd=max_gasto, nivel=nivel, resolucion=resolucion,
+                            modelo_video=modelo_video, modelo_imagen=modelo_imagen,
+                            subir_referencias=subir)
+    con.print(f"Fusible de esta ejecución: {max_gasto:.2f} $ · gastado hoy: {ev.gasto_hoy():.2f} $")
+
+    informe = ejecutar(serie, idea=idea, id_episodio=episodio, politica=politica, montar=montar)
+    for paso in informe.pasos:
+        con.print(str(paso))
+    con.print(f"\nGastado en esta ejecución: [bold]{informe.gastado:.3f} $[/bold]"
+              + (f" · reutilizado sin pagar: {informe.reutilizado:.3f} $"
+                 if informe.reutilizado else ""))
+    parado = informe.parado_en
+    if parado:
+        con.print(f"[yellow]Parado en:[/yellow] {parado.nombre} — {parado.detalle}")
+        if parado.accion:
+            con.print(f"  {parado.accion}")
+        raise typer.Exit(0 if parado.estado.value == "espera_humano" else 1)
+    con.print("[green]Fase completada.[/green]")
+
+
+@app.command()
+def montar(serie: str, episodio: str = typer.Option("s01_ep01"),
+           quemar_subtitulos: bool = typer.Option(False, help="Quemarlos en la zona segura")):
+    """Monta el episodio con las tomas aprobadas: concatena, escala a 1080×1920 y saca el .srt."""
+    from .montaje import SinTomas
+    from .montaje import montar as montar_episodio
+    from .orquestador import Orquestador
+
+    orq = Orquestador(serie)
+    proy_ = orq.proyecto
+    lista = orq.shotlist(episodio)
+    destino = orq._carpeta(episodio) / "final.mp4"
+    try:
+        escritos = montar_episodio(lista, orq.estados(episodio), destino, proyecto=proy_,
+                                   quemar_subtitulos=quemar_subtitulos)
+    except SinTomas as e:
+        con.print(f"[red]{e}[/red]")
+        raise typer.Exit(2) from e
+    for nombre, ruta in escritos.items():
+        con.print(f"  {nombre} → {ruta.relative_to(ROOT)}")
+    _pinta(valida_episodio(sonda.sondear(escritos["final"]), proyecto=proy_, etiqueta_ia=True),
+           "Validación del episodio")
 
 
 # ---------------------------------------------------------------- registro

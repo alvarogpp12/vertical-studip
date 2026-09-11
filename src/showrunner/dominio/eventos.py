@@ -17,6 +17,7 @@ de coste más grande del proyecto (los reintentos) es inmedible.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import sqlite3
 import threading
@@ -58,12 +59,14 @@ CREATE TABLE IF NOT EXISTS eventos (
   ref             INTEGER,
   coste_estimado  REAL    NOT NULL DEFAULT 0.0,
   coste_real      REAL,
+  huella          TEXT,
   payload_json    TEXT    NOT NULL DEFAULT '{}'
 );
 CREATE INDEX IF NOT EXISTS idx_eventos_ts    ON eventos(ts);
 CREATE INDEX IF NOT EXISTS idx_eventos_serie ON eventos(serie, episodio, plano);
 CREATE INDEX IF NOT EXISTS idx_eventos_tipo  ON eventos(tipo);
 CREATE INDEX IF NOT EXISTS idx_eventos_ref   ON eventos(ref);
+CREATE INDEX IF NOT EXISTS idx_eventos_huella ON eventos(huella);
 """
 
 
@@ -98,6 +101,15 @@ def _iniciar(con: sqlite3.Connection) -> None:
     except sqlite3.OperationalError:
         pass
     con.executescript(ESQUEMA)
+    _migrar(con)
+
+
+def _migrar(con: sqlite3.Connection) -> None:
+    """Migraciones sobre bases ya creadas. Añadir columnas es barato; perder el log, no."""
+    columnas = {fila["name"] for fila in con.execute("PRAGMA table_info(eventos)")}
+    if "huella" not in columnas:
+        con.execute("ALTER TABLE eventos ADD COLUMN huella TEXT")
+        con.execute("CREATE INDEX IF NOT EXISTS idx_eventos_huella ON eventos(huella)")
 
 
 @contextmanager
@@ -121,12 +133,13 @@ def conexion(ruta: Path | None = None) -> Iterator[sqlite3.Connection]:
 def _insertar(con: sqlite3.Connection, tipo: TipoEvento, *, serie: str = "", episodio: str = "",
               plano: str = "", intento: int = 0, ref: int | None = None,
               coste_estimado: float = 0.0, coste_real: float | None = None,
-              ts: str | None = None, payload: dict | None = None) -> int:
+              ts: str | None = None, huella: str | None = None,
+              payload: dict | None = None) -> int:
     cur = con.execute(
         "INSERT INTO eventos (ts, serie, episodio, plano, intento, tipo, ref, "
-        "coste_estimado, coste_real, payload_json) VALUES (?,?,?,?,?,?,?,?,?,?)",
+        "coste_estimado, coste_real, huella, payload_json) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
         (ts or _ahora(), serie, episodio, plano, intento, tipo, ref,
-         float(coste_estimado), coste_real,
+         float(coste_estimado), coste_real, huella,
          json.dumps(payload or {}, ensure_ascii=False)),
     )
     return int(cur.lastrowid)
@@ -135,7 +148,7 @@ def _insertar(con: sqlite3.Connection, tipo: TipoEvento, *, serie: str = "", epi
 def registrar(tipo: TipoEvento, /, *, serie: str = "", episodio: str = "", plano: str = "",
               intento: int = 0, ref: int | None = None, coste_estimado: float = 0.0,
               coste_real: float | None = None, ts: str | None = None,
-              bd: Path | None = None, **payload) -> int:
+              huella: str | None = None, bd: Path | None = None, **payload) -> int:
     """Añade un evento y devuelve su id.
 
     `tipo` es posicional a propósito: así un payload puede llevar su propia clave
@@ -144,7 +157,7 @@ def registrar(tipo: TipoEvento, /, *, serie: str = "", episodio: str = "", plano
     with conexion(bd) as con:
         return _insertar(con, tipo, serie=serie, episodio=episodio, plano=plano, intento=intento,
                          ref=ref, coste_estimado=coste_estimado, coste_real=coste_real, ts=ts,
-                         payload=payload)
+                         huella=huella, payload=payload)
 
 
 # ---------------------------------------------------------------- consultas
@@ -200,7 +213,8 @@ def gasto_total(serie: str = "", bd: Path | None = None) -> float:
 
 # ------------------------------------------------------- reserva de gasto
 def reservar(coste_estimado: float, *, serie: str = "", episodio: str = "", plano: str = "",
-             intento: int = 1, bd: Path | None = None, **payload) -> int:
+             intento: int = 1, huella: str | None = None, bd: Path | None = None,
+             **payload) -> int:
     """Comprueba los topes y reserva el gasto **en la misma transacción**.
 
     Devuelve el id del evento `generacion_solicitada`, que hay que pasar luego a
@@ -234,7 +248,7 @@ def reservar(coste_estimado: float, *, serie: str = "", episodio: str = "", plan
                 )
             evento = _insertar(con, "generacion_solicitada", serie=serie, episodio=episodio,
                                plano=plano, intento=intento, coste_estimado=coste_estimado,
-                               payload=payload)
+                               huella=huella, payload=payload)
             con.execute("COMMIT")
             return evento
         except BaseException:
@@ -256,6 +270,32 @@ def cerrar(solicitud_id: int, *, ok: bool, coste_real: float | None = None,
             coste_real=fila["coste_estimado"] if coste_real is None else float(coste_real),
             payload=payload,
         )
+
+
+def huella(modelo: str, params: dict[str, Any], refs: list[str] | None = None) -> str:
+    """Huella de contenido de una generación: mismo modelo, mismos parámetros, mismas refs.
+
+    Es lo que impide que un rerun del orquestador vuelva a pagar 30 $ de vídeo ya
+    generado. El orden de las referencias no cuenta; el de las claves tampoco.
+    """
+    material = json.dumps(
+        {"modelo": modelo,
+         "params": {k: params[k] for k in sorted(params)},
+         "refs": sorted(refs or [])},
+        sort_keys=True, ensure_ascii=False, default=str,
+    )
+    return hashlib.sha256(material.encode("utf-8")).hexdigest()
+
+
+def generacion_previa(huella_buscada: str, bd: Path | None = None) -> dict[str, Any] | None:
+    """La generación ya cerrada con éxito que tenga esa huella, si existe."""
+    with conexion(bd) as con:
+        fila = con.execute(
+            "SELECT t.* FROM eventos s JOIN eventos t ON t.ref = s.id "
+            "WHERE s.huella = ? AND t.tipo = 'generacion_ok' ORDER BY t.id LIMIT 1",
+            (huella_buscada,),
+        ).fetchone()
+        return _fila_a_dict(fila) if fila else None
 
 
 def comprobar_presupuesto(coste_estimado: float, bd: Path | None = None) -> None:

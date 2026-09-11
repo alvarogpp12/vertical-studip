@@ -9,7 +9,6 @@ from showrunner import casting, proyecto
 from showrunner.dominio import eventos as ev
 from showrunner.dominio import registro as reg
 from showrunner.dominio import serie as ser
-from showrunner.dominio import shotlist as sl
 
 
 def test_crear_serie_rellena_las_plantillas(serie):
@@ -21,8 +20,9 @@ def test_crear_serie_rellena_las_plantillas(serie):
     proy = ser.cargar(serie / "proyecto.json")
     assert proy.titulo == "Cañón Rojo" and proy.plataforma == "tiktok"
     assert not proy.aprobado("biblia")
-    lista = sl.cargar(serie / "episodios" / "ep01" / "shotlist.json")
-    assert lista.episodio == "s01_ep01" and lista.planos[0].es_master
+    # Los episodios los escribe el guionista: la plantilla ya no trae un shotlist
+    # de ejemplo con la convención de ids antigua.
+    assert not (serie / "episodios" / "ep01" / "shotlist.json").exists()
 
 
 def test_crear_serie_dos_veces_falla(serie):

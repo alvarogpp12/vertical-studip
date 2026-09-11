@@ -12,7 +12,6 @@ from pathlib import Path
 from .config import ROOT
 from .dominio import registro as reg
 from .dominio import serie as ser
-from .dominio import shotlist as sl
 from .dominio.identidad import slugify
 
 PLANTILLA = ROOT / "templates" / "proyecto"
@@ -54,9 +53,6 @@ def crear(nombre: str, idea: str = "", plataforma: str = "tiktok") -> Path:
     registro = reg.cargar(destino / "registry.json")
     registro.serie = slug
     reg.guardar(registro, destino / "registry.json")
-
-    # El shotlist de la plantilla ya viene con ids canónicos; se valida al crear.
-    sl.cargar(destino / "episodios" / "ep01" / "shotlist.json")
 
     proyecto = ser.Proyecto(slug=slug, titulo=nombre, idea=idea, plataforma=plataforma)
     ser.guardar(proyecto, destino / "proyecto.json")
