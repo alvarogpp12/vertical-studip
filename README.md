@@ -7,7 +7,7 @@ Agente productor de series verticales (9:16) hechas 100 % con IA: **idea → bib
 git clone <URL-de-tu-repo> showrunner-ia && cd showrunner-ia
 bash scripts/setup_mac.sh
 ```
-Después abre `.env` y pega tus claves. Guía completa: [docs/PLAN_ACCIONES.md](docs/PLAN_ACCIONES.md).
+Después abre `.env` y pega tus claves. Guía completa: [docs/PLAN_ACCIONES.md](docs/PLAN_ACCIONES.md) · Cómo trabajamos: [docs/FLUJO_DE_TRABAJO.md](docs/FLUJO_DE_TRABAJO.md).
 
 ## Qué incluye (v0.1)
 | Pieza | Estado |

@@ -1,0 +1,21 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - uses: astral-sh/setup-uv@v6
+      - name: Dependencias
+        run: uv sync --extra dev
+      - name: Tests
+        run: uv run pytest -q
+      - name: Diagnóstico (sin claves)
+        run: uv run showrunner modelos
