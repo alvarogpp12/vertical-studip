@@ -1,0 +1,26 @@
+// Golden set del director. Cada caso es una mutación del prompt base, para que se
+// lea de un vistazo qué regla rompe. etiqueta: "valido" o el código que debe salir.
+{"id": "p01", "etiqueta": "valido", "nota": "prompt base correcto"}
+{"id": "p02", "etiqueta": "STYLE_PREFIX_AUSENTE", "nota": "R-03: falta el bloque inmutable", "mutacion": {"quitar": ["Style: gritty 90s film look, vertical 9:16 composition, hard key light from a single window, palette #101010 #8A8F98 #B3372B, fine grain, 85mm lens, tripod, tilts and push-ins only."]}}
+{"id": "p03", "etiqueta": "STYLE_PREFIX_AUSENTE", "nota": "R-03: el STYLE PREFIX resumido, no literal", "mutacion": {"sustituir": [["Style: gritty 90s film look, vertical 9:16 composition, hard key light from a single window, palette #101010 #8A8F98 #B3372B, fine grain, 85mm lens, tripod, tilts and push-ins only.", "Style: gritty 90s look, vertical, 85mm."]]}}
+{"id": "p04", "etiqueta": "CONSTRAINTS_AUSENTE", "nota": "R-03: CONSTRAINTS recortado", "mutacion": {"sustituir": [["Only scripted lines are spoken, about four words per second, one second of clean silence at the end. ", ""]]}}
+{"id": "p05", "etiqueta": "TAG_NO_REGISTRADO", "nota": "R-01: personaje que no está en el registro", "mutacion": {"sustituir": [["@char_canon-rojo_Nadia_v1", "@char_canon-rojo_Fantasma_v1"]]}}
+{"id": "p06", "etiqueta": "TAG_NO_REGISTRADO", "nota": "R-01: localización inventada", "mutacion": {"sustituir": [["@loc_canon-rojo_Despacho_v1", "@loc_canon-rojo_Azotea_v1"]]}}
+{"id": "p07", "etiqueta": "TAG_MAL_FORMADO", "nota": "R-01: tag sin serie ni versión", "mutacion": {"sustituir": [["@char_canon-rojo_Nadia_v1", "@char_Nadia"]]}}
+{"id": "p08", "etiqueta": "DESCRIPTOR_NO_LITERAL", "nota": "R-02: se cae el ancla de identidad del descriptor", "mutacion": {"sustituir": [["a thin scar through the left eyebrow, ", ""]]}}
+{"id": "p09", "etiqueta": "DESCRIPTOR_NO_LITERAL", "nota": "R-02: el descriptor de la localización, resumido", "mutacion": {"sustituir": [["A narrow municipal office: grey filing cabinets along the left wall, a steel desk under a tall window, cold north light on scuffed linoleum.", "A small grey office with a desk."]]}}
+{"id": "p10", "etiqueta": "SIN_NO_MUSIC", "nota": "R-09: banda sonora en vez de sonido diegético", "mutacion": {"sustituir": [["No music — diegetic sound only. Paper, breath, the radiator.", "Soft piano score under the scene."], ["No music — diegetic sound only. Location references", "Location references"]]}}
+{"id": "p11", "etiqueta": "VOCABULARIO_EMOCION", "nota": "R-07: emociones en vez de tareas", "mutacion": {"anadir": "She looks sad and angry while she reads."}}
+{"id": "p12", "etiqueta": "VOCABULARIO_EMOCION", "nota": "R-07: la variante en español también cuenta", "mutacion": {"anadir": "Nadia está muy nerviosa y asustada."}}
+{"id": "p13", "etiqueta": "VOCABULARIO_FILTRO", "nota": "R-08: vocabulario que dispara el filtro del modelo", "mutacion": {"anadir": "Blood on her hands as she reads."}}
+{"id": "p14", "etiqueta": "VOCABULARIO_FILTRO", "nota": "R-08: idem, otra palabra", "mutacion": {"anadir": "She starts to undress by the window."}}
+{"id": "p15", "etiqueta": "VOCABULARIO_PLATAFORMA", "nota": "03_plataformas: cara real / IP ajena", "mutacion": {"anadir": "She looks like a celebrity from a Netflix series."}}
+{"id": "p16", "etiqueta": "VOCABULARIO_PLATAFORMA", "nota": "03_plataformas: parecido a una persona real", "mutacion": {"anadir": "Her face is a look-alike of a real person."}}
+{"id": "p17", "etiqueta": "PROMPT_NO_ES_ISLA", "nota": "R-02: herencia de otro plano, en inglés", "mutacion": {"anadir": "Continuing from the previous shot, same as before."}}
+{"id": "p18", "etiqueta": "PROMPT_NO_ES_ISLA", "nota": "R-02: herencia de otro plano, en español", "mutacion": {"anadir": "Igual que antes, sigue la escena anterior."}}
+{"id": "p19", "etiqueta": "valido", "nota": "NUMERO_DE_ESCENA es aviso, no error: no debe bloquear", "mutacion": {"anadir": "Shot 3 of the sequence."}}
+{"id": "p20", "etiqueta": "valido", "nota": "PROHIBICION_SUELTA es aviso: se informa pero no bloquea", "mutacion": {"anadir": "Avoid empty rooms."}}
+{"id": "p21", "etiqueta": "valido", "nota": "el «@tag» del bloque CONSTRAINTS no es una referencia de este plano"}
+{"id": "p22", "etiqueta": "valido", "nota": "más bloqueos positivos no rompen nada", "mutacion": {"anadir": "POSITIVE LOCKS\nA change of coat colour between frames = failed take."}}
+{"id": "p23", "etiqueta": "valido", "nota": "máster de geografía: sin diálogo", "mutacion": {"sustituir": [["DIALOGUE\nNadia: \"Esta firma no es mia\"", "DIALOGUE\n(none)"]]}}
+{"id": "p24", "etiqueta": "TAG_NO_REGISTRADO", "nota": "R-01: un prop que nadie registró", "mutacion": {"anadir": "The envelope @prop_canon-rojo_Sobre_v1 rests on the desk."}}

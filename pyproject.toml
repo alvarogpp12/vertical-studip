@@ -35,7 +35,7 @@ packages = ["src/showrunner"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["src", "tests", "evals"]
 
 [tool.ruff]
 line-length = 100
@@ -50,6 +50,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
+"evals/eval_*.py" = ["E402", "I001"]   # los imports van después de ajustar sys.path
 "src/showrunner/dominio/__init__.py" = ["F401"]
 "src/showrunner/valida/__init__.py" = ["F401"]
 "src/showrunner/providers/__init__.py" = ["F401"]

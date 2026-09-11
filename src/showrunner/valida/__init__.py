@@ -7,9 +7,16 @@ linter/hook antes de cada llamada»). Cuatro familias:
 * `plano`    · lo que dice el shotlist        (R-06, R-09, R-11, R-12, vertical)
 * `toma`     · lo que ha devuelto el modelo   (9:16, fps, duración, ΔE, cortes)
 * `episodio` · lo que se va a publicar        (≥ 61 s, etiqueta de IA)
+* `biblia`   · lo que produce un agente       (producibilidad, paleta, gancho, cliffhanger)
 """
 from __future__ import annotations
 
+from .biblia import (
+    valida_biblia,
+    valida_estilo,
+    valida_salida_guionista,
+    valida_salida_showrunner,
+)
 from .episodio import valida_episodio
 from .plano import valida_plano, valida_shotlist
 from .prompt import bloques_de_estilo, valida_prompt

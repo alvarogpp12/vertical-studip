@@ -1,0 +1,4 @@
+// Golden set del QC. Cada caso apunta a una toma real ya juzgada por un humano.
+// Rellénalo a medida que revises tomas: `fotogramas` son rutas relativas al repo,
+// `etiqueta` es tu veredicto (aceptada | empalmable | rechazada).
+// Mientras esté vacío, eval_qc.py lo dirá en vez de inventarse un número.

@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "serie": "canon-rojo",
+  "personajes": {
+    "@char_canon-rojo_Nadia_v1": {
+      "id": "@char_canon-rojo_Nadia_v1",
+      "descriptor": "Woman in her early forties, short black hair, a thin scar through the left eyebrow, grey wool coat over a dark green shirt.",
+      "referencias": [
+        {
+          "url": "https://ejemplo/cara.png",
+          "tipo": "cara",
+          "congelada": true,
+          "creada_con": "",
+          "notas": ""
+        },
+        {
+          "url": "https://ejemplo/hoja.png",
+          "tipo": "hoja",
+          "congelada": false,
+          "creada_con": "",
+          "notas": ""
+        }
+      ],
+      "estado": "aprobado",
+      "version": 1,
+      "creado_con": "",
+      "voz_lock": "AUDIO LOCK: voz grave, tempo lento.",
+      "mapa": "",
+      "notas": ""
+    }
+  },
+  "localizaciones": {
+    "@loc_canon-rojo_Despacho_v1": {
+      "id": "@loc_canon-rojo_Despacho_v1",
+      "descriptor": "A narrow municipal office: grey filing cabinets along the left wall, a steel desk under a tall window, cold north light on scuffed linoleum.",
+      "referencias": [
+        {
+          "url": "https://ejemplo/loc.png",
+          "tipo": "localizacion",
+          "congelada": false,
+          "creada_con": "",
+          "notas": ""
+        }
+      ],
+      "estado": "aprobado",
+      "version": 1,
+      "creado_con": "",
+      "voz_lock": "",
+      "mapa": "Nadia a la izquierda del escritorio de acero, la ventana al fondo.",
+      "notas": ""
+    }
+  },
+  "props": {},
+  "voces": {}
+}

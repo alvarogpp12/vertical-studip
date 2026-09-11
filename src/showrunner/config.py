@@ -34,6 +34,11 @@ def cargar_modelos_imagen() -> dict:
     return _catalogo().get("modelos_imagen", {})
 
 
+def cargar_modelos_llm() -> dict:
+    """Catálogo de modelos de lenguaje: los que mueven a los agentes."""
+    return _catalogo().get("modelos_llm", {})
+
+
 def recargar_catalogo() -> None:
     _catalogo.cache_clear()
 

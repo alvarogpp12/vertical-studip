@@ -82,3 +82,25 @@ modelos_imagen:
     precio_img: 0.0
     referencias: {imagenes: 50}
     estado: confirmado   # imágenes locales con ffmpeg, sin coste
+
+# Modelos de lenguaje (los agentes). Precio en USD por millón de tokens.
+# Fuente: tabla de precios de la API de Claude. La lectura de caché cuesta ~0,1x
+# y la escritura ~1,25x sobre el precio de entrada.
+modelos_llm:
+  claude-opus-5:
+    precio_entrada_mtok: 5.0
+    precio_salida_mtok: 25.0
+    contexto: 1000000
+    estado: confirmado
+
+  claude-sonnet-5:
+    precio_entrada_mtok: 2.0
+    precio_salida_mtok: 10.0
+    contexto: 1000000
+    estado: confirmado
+
+  claude-haiku-4-5:
+    precio_entrada_mtok: 1.0
+    precio_salida_mtok: 5.0
+    contexto: 200000
+    estado: confirmado

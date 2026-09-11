@@ -49,7 +49,8 @@ Claude Code lee [CLAUDE.md](CLAUDE.md) automáticamente: objetivo, decisiones, r
 | QC técnico | Formato 9:16, fps, cortes, fotogramas clave, paleta hex, deriva de color ΔE | ✅ |
 | Plantilla de serie | biblia, style, voces, registry, temporada, shotlist | ✅ |
 | Skills del agente | director-vertical v0.1 · qc-continuidad v0.1 · showrunner v0.0 | 🧱 |
-| Agentes (showrunner, guionista, director, QC) | Funciones tipadas sobre los contratos, con evals | ⏳ |
+| Agentes (showrunner, guionista, director, QC) | Funciones tipadas con salida estructurada y canal de rechazo | ✅ pendiente de 1.ª llamada real |
+| Evaluación | Un script por agente, rúbrica de `docs/conocimiento/`, acuerdo juez–humano | ✅ |
 | Orquestador autónomo, montaje, publicación | Claude Agent SDK + FFmpeg + APIs de plataformas | ⏳ |
 
 ### Niveles de generación
@@ -73,6 +74,11 @@ uv run showrunner generar prompt.md --salida runs/prueba.mp4 --modelo mock --dur
 uv run showrunner qc runs/prueba.mp4
 uv run showrunner valida shotlist mi-serie --episodio s01_ep01   # gratis, sin red
 uv run showrunner estado --serie mi-serie                        # intentos, coste y métricas
+
+uv run showrunner biblia "Mi serie" --idea "Una frase con la idea"   # agente showrunner
+uv run showrunner guion mi-serie --episodio s01_ep01                 # agente guionista
+uv run showrunner prompts mi-serie --episodio s01_ep01               # agente director
+uv run python evals/eval_director.py                                 # evaluación, gratis
 ```
 
 ## Estructura
@@ -81,7 +87,9 @@ CLAUDE.md                 instrucciones para Claude Code
 docs/                     estado, plan de acciones, flujo de trabajo, investigación
 config/modelos.yaml       catálogo de modelos y precios
 src/showrunner/dominio/   contratos: ids, registro, shotlist, proyecto, log de eventos
-src/showrunner/valida/    linter determinista: prompt, plano, toma, episodio
+src/showrunner/valida/    linter determinista: prompt, plano, toma, episodio, biblia
+src/showrunner/agentes/   los 4 agentes que deciden (el resto es código determinista)
+evals/                    evaluación por agente, con golden sets etiquetados
 src/showrunner/           código: proveedores, router, casting, qc, cli
 templates/proyecto/       plantilla de cada serie
 proyectos/<serie>/        una carpeta por serie

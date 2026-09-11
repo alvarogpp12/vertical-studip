@@ -52,3 +52,37 @@ def test_estado_muestra_las_metricas():
     r = runner.invoke(cli.app, ["estado", "--serie", "canon-rojo"])
     assert r.exit_code == 0
     assert '"planos": 1' in r.stdout and '"intentos_totales": 1' in r.stdout
+
+
+def test_guion_exige_la_biblia_aprobada(serie, monkeypatch):
+    """CONTROL HUMANO 1: sin firma no se sigue produciendo."""
+    monkeypatch.setattr(cli.proyecto, "ruta", lambda _: serie)
+    r = runner.invoke(cli.app, ["guion", "canon-rojo", "--episodio", "s01_ep01"])
+    assert r.exit_code == 2 and "no está aprobada" in r.stdout
+
+
+def test_biblia_escribe_los_archivos_y_no_aprueba_sola(serie, monkeypatch):
+    import factorias as f
+
+    from showrunner.agentes import showrunner as ag
+    from showrunner.dominio import serie as ser
+
+    monkeypatch.setattr(cli.proyecto, "ruta", lambda _: serie)
+    monkeypatch.setattr(cli, "ROOT", serie.parents[1])
+    monkeypatch.setattr(ag, "crear_biblia", lambda *a, **k: f.sobre(f.salida_showrunner()))
+    r = runner.invoke(cli.app, ["biblia", "Cañón Rojo", "--idea", "Una jueza y su hija."])
+    assert r.exit_code == 0, r.stdout
+    assert (serie / "biblia.json").exists() and (serie / "style.md").exists()
+    assert not ser.cargar(serie / "proyecto.json").aprobado("biblia")
+
+
+def test_biblia_propaga_el_rechazo_del_agente(serie, monkeypatch):
+    from showrunner.agentes import rechazo
+    from showrunner.agentes import showrunner as ag
+
+    monkeypatch.setattr(cli.proyecto, "ruta", lambda _: serie)
+    monkeypatch.setattr(cli, "ROOT", serie.parents[1])
+    monkeypatch.setattr(ag, "crear_biblia",
+                        lambda *a, **k: rechazo("humano", "IDEA_INSUFICIENTE", "sin conflicto"))
+    r = runner.invoke(cli.app, ["biblia", "Cañón Rojo", "--idea", "x"])
+    assert r.exit_code == 2 and "IDEA_INSUFICIENTE" in r.stdout

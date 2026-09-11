@@ -176,3 +176,15 @@ def test_episodio_corto_o_sin_etiqueta_de_ia():
     assert {"EPISODIO_CORTO", "SIN_ETIQUETA_IA"} <= set(informe.codigos)
     tecnico["duracion"] = 72.0
     assert valida_episodio(tecnico, proyecto=proy, etiqueta_ia=True).ok
+
+
+def test_el_at_tag_del_bloque_constraints_no_cuenta_como_referencia():
+    """La plantilla de CONSTRAINTS dice «match their @tag references»: no es un tag."""
+    style = STYLE.replace(
+        "Photoreal live-action. Faces blink and breathe.",
+        "Photoreal live-action. Identities match their @tag references in every shot.")
+    prompt = PROMPT_BUENO.replace(
+        "Photoreal live-action. Faces blink and breathe.",
+        "Photoreal live-action. Identities match their @tag references in every shot.")
+    informe = valida_prompt(prompt, style_md=style, registro=_registro())
+    assert informe.ok, informe.resumen()

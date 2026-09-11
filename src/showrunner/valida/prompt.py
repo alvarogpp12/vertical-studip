@@ -30,6 +30,9 @@ PROHIBICIONES = re.compile(
 MARCA_FALLIDA = re.compile(r"=\s*(?:failed take|toma fallida)", re.IGNORECASE)
 SIN_MUSICA = re.compile(r"\bno\s+music\b", re.IGNORECASE)
 
+#: El bloque CONSTRAINTS habla de «@tag references» en abstracto: no es un tag.
+MARCADORES = {"@tag", "@tags"}
+
 
 def _norm(texto: str) -> str:
     """Colapsa espacios: «palabra por palabra» no significa «con los mismos saltos»."""
@@ -87,8 +90,14 @@ def valida_prompt(texto: str, *, style_md: str = "", registro: Registro | None =
                     "el bloque CONSTRAINTS de style.md no aparece copiado palabra por palabra",
                     "R-03", _norm(bloques["constraints"])[:160])
 
-    # R-01 y R-02 · tags registrados y descriptores literales
-    tags = tags_en_texto(texto)
+    # R-01 y R-02 · tags registrados y descriptores literales.
+    # Los bloques copiados de style.md no se inspeccionan: son texto inmutable que
+    # menciona «@tag» en abstracto, no referencias de este plano.
+    sin_estilo = texto
+    for copiado in (bloques_de_estilo(style_md).values() if style_md else []):
+        if copiado:
+            sin_estilo = sin_estilo.replace(copiado.strip(), " ")
+    tags = [t for t in tags_en_texto(sin_estilo) if t not in MARCADORES]
     for tag in tags:
         if not RE_TAG.match(tag):
             r.error("TAG_MAL_FORMADO", f"{tag} no sigue el formato @tipo_serie_Nombre_vN", "R-01")

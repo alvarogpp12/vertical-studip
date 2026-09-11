@@ -14,7 +14,7 @@ from .dominio import eventos as ev
 from .dominio import registro as reg
 from .dominio import serie as ser
 from .dominio import shotlist as sl
-from .dominio.identidad import IdPlano
+from .dominio.identidad import IdPlano, slugify
 from .providers import PeticionVideo, elegir_modelo, estimar_coste, obtener_proveedor
 from .providers.imagen import obtener_proveedor_imagen
 from .qc import escenas, fotogramas, paleta, sonda
@@ -267,6 +267,107 @@ def casting_aprobar(serie: str, tag: str, por: str = typer.Option(..., help="Qui
     """CONTROL HUMANO 2: aprueba un asset del casting."""
     asset = casting_mod.aprobar(proyecto.ruta(serie), tag, por)
     con.print(f"[green]{asset.id} aprobado por {por}[/green]")
+
+
+# ------------------------------------------------------------------ agentes
+@app.command()
+def biblia(
+    titulo: str = typer.Argument(..., help="Título de la serie (crea la carpeta si no existe)"),
+    idea: str = typer.Option(..., help="La idea, en 1–3 frases"),
+    plataforma: str = typer.Option("tiktok", help="tiktok | youtube | meta"),
+    episodios: int = typer.Option(6, help="Episodios a planificar"),
+):
+    """Agente showrunner: idea → 3 conceptos → biblia, estilo, voces, temporada y registro."""
+    from .agentes import escritura
+    from .agentes import showrunner as ag
+
+    slug = slugify(titulo)
+    base = ROOT / "proyectos" / slug
+    if not base.exists():
+        base = proyecto.crear(titulo, idea, plataforma)
+        con.print(f"Serie creada: {base.relative_to(ROOT)}")
+    proy = ser.cargar(base / "proyecto.json")
+    con.print("Llamando al showrunner (claude-opus-5, effort xhigh)…")
+    sobre = ag.crear_biblia(idea, titulo, plataforma=plataforma, n_episodios=episodios,
+                            proyecto=proy)
+    if not sobre.ok:
+        con.print(f"[red]Rechazo[/red] [{sobre.rechazo.motivo_codigo}] → "
+                  f"{sobre.rechazo.destinatario}: {sobre.rechazo.detalle}")
+        raise typer.Exit(2)
+    escritos = escritura.guardar_biblia(base, sobre.resultado)
+    for nombre, ruta in escritos.items():
+        con.print(f"  {nombre} → {ruta.relative_to(ROOT)}")
+    con.print(f"[green]Biblia escrita.[/green] Gasto acumulado hoy: {ev.gasto_hoy():.4f} $")
+    con.print(f"Siguiente: revísala y apruébala con "
+              f"`showrunner aprobar {slug} biblia --por tu-nombre`.")
+
+
+@app.command()
+def guion(serie: str, episodio: str = typer.Option("s01_ep01"),
+          sinopsis: str = typer.Option("", help="Punto de partida; vacío = lo saca de la biblia")):
+    """Agente guionista: biblia → guion.md + shotlist.json con ids canónicos."""
+    from .agentes import escritura
+    from .agentes import guionista as ag
+
+    base = proyecto.ruta(serie)
+    proy = ser.cargar(base / "proyecto.json")
+    if not proy.aprobado("biblia"):
+        con.print("[red]La biblia no está aprobada.[/red] CONTROL HUMANO 1: "
+                  f"`showrunner aprobar {serie} biblia --por tu-nombre`.")
+        raise typer.Exit(2)
+    con.print("Llamando al guionista (claude-opus-5, effort high)…")
+    sobre = ag.escribir_episodio(
+        (base / "biblia.md").read_text(encoding="utf-8"),
+        (base / "style.md").read_text(encoding="utf-8"),
+        reg.cargar(base / "registry.json"),
+        id_episodio=episodio, proyecto=proy, sinopsis=sinopsis)
+    if not sobre.ok:
+        con.print(f"[red]Rechazo[/red] [{sobre.rechazo.motivo_codigo}] → "
+                  f"{sobre.rechazo.destinatario}: {sobre.rechazo.detalle}")
+        raise typer.Exit(2)
+    escritos = escritura.guardar_episodio(base, sobre.resultado, episodio)
+    for nombre, ruta in escritos.items():
+        con.print(f"  {nombre} → {ruta.relative_to(ROOT)}")
+    con.print(f"[green]Episodio escrito[/green] · {sobre.resultado.duracion_total} s · "
+              f"{len(sobre.resultado.planos)} planos")
+
+
+@app.command()
+def prompts(serie: str, episodio: str = typer.Option("s01_ep01"),
+            plano: str = typer.Option("", help="Un plano concreto; vacío = todos"),
+            sobrescribir: bool = typer.Option(False, help="Rehacer prompts que ya existen")):
+    """Agente director: cada plano del shotlist → su prompt, ya pasado por el linter."""
+    from .agentes import director as ag
+
+    base = proyecto.ruta(serie)
+    registro = reg.cargar(base / "registry.json")
+    estilo = (base / "style.md").read_text(encoding="utf-8")
+    biblia_md = (base / "biblia.md").read_text(encoding="utf-8")
+    carpeta = base / "episodios" / IdPlano.parse(f"{episodio}_sh001").carpeta_episodio
+    lista = sl.cargar(carpeta / "shotlist.json")
+    destino = carpeta / "prompts"
+    destino.mkdir(parents=True, exist_ok=True)
+
+    planos = [lista.plano(plano)] if plano else lista.en_orden
+    con.print(f"Escribiendo {len(planos)} prompts con claude-sonnet-5 (caché de 1 h)…")
+    rechazados = 0
+    for ficha in planos:
+        salida_md = destino / f"{ficha.id}.md"
+        if salida_md.exists() and not sobrescribir:
+            con.print(f"  {ficha.id}: ya existe, se salta")
+            continue
+        sobre = ag.escribir_prompt(ficha, registro, biblia_md=biblia_md, estilo_md=estilo,
+                                   serie=serie)
+        if not sobre.ok:
+            rechazados += 1
+            con.print(f"  [red]{ficha.id}[/red] [{sobre.rechazo.motivo_codigo}] "
+                      f"{sobre.rechazo.detalle}")
+            continue
+        salida_md.write_text(sobre.resultado.prompt, encoding="utf-8")
+        con.print(f"  [green]{ficha.id}[/green] → {salida_md.relative_to(ROOT)}")
+    con.print(f"Gasto acumulado hoy: {ev.gasto_hoy():.4f} $")
+    if rechazados:
+        raise typer.Exit(2)
 
 
 # ---------------------------------------------------------------- registro

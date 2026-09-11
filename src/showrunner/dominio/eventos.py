@@ -37,8 +37,11 @@ TipoEvento = Literal[
     "qc_veredicto",
     "rechazo",
     "aprobacion_humana",
+    "llm_llamada",
 ]
 TERMINALES = ("generacion_ok", "generacion_fallo")
+#: Tipos que ya traen coste cerrado y cuentan para el tope diario.
+CON_COSTE = ("generacion_ok", "generacion_fallo", "llm_llamada")
 
 #: R-11: tras 20 intentos fallidos no se sigue quemando crédito; se escala al humano.
 MAX_INTENTOS = 20
@@ -172,7 +175,7 @@ def _gasto_desde(con: sqlite3.Connection, desde: str, serie: str = "") -> float:
     args_serie = [serie] if serie else []
     confirmado = con.execute(
         f"SELECT COALESCE(SUM(coste_real), 0) FROM eventos "
-        f"WHERE tipo IN {TERMINALES} AND coste_real IS NOT NULL AND ts >= ?{filtro_serie}",
+        f"WHERE tipo IN {CON_COSTE} AND coste_real IS NOT NULL AND ts >= ?{filtro_serie}",
         [desde, *args_serie],
     ).fetchone()[0]
     # Generaciones en vuelo: cuentan por su estimación hasta que se cierran.

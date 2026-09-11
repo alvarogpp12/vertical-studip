@@ -16,8 +16,10 @@ jobs:
       - name: Dependencias
         run: uv sync --extra dev
       - name: Lint
-        run: uv run ruff check src tests scripts
+        run: uv run ruff check src tests scripts evals
       - name: Tests
         run: uv run pytest -q
+      - name: Evaluación del linter de prompts (golden set, sin red)
+        run: uv run python evals/eval_director.py
       - name: Diagnóstico (sin claves)
         run: uv run showrunner modelos

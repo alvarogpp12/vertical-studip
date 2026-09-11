@@ -61,6 +61,9 @@ Validadas en ≥ 2 producciones del top 30 de Higgsfield. Detalle en `docs/conoc
 - **Un solo id de plano: `s01_ep01_sh003`.** La forma corta `ep01_sh001` está retirada.
 - **El estado de un plano no se escribe, se pliega** desde `runs/eventos.sqlite` (`showrunner estado`). Un campo `estado` a mano miente; un log append-only no.
 - **Nada se genera sin pasar el linter** (`showrunner valida prompt`). Corre también como hook `PreToolUse`.
+- **Los agentes son funciones tipadas**, no sesiones: `(entrada, contexto) -> Resultado | Rechazo`. Las llamadas caras (vídeo, imagen) van siempre fuera del agente.
+- **Los `SKILL.md` son el system prompt de cada agente.** Una sola fuente: se afinan a mano en Claude Code y el pipeline los carga y los cachea.
+- **Un agente no inventa ids** (de plano ni de asset): los genera el código.
 - **Nunca** leer, imprimir ni commitear `.env` ni claves. Las medias (mp4, png, jpg) no van a git.
 - **No usar nivel `clave`** sin una toma aprobada en `borrador`.
 - Antes de cualquier generación real: estima el coste con `showrunner estimar` y dilo. Si una tarea puede gastar más de **5 $**, pide confirmación.
@@ -90,9 +93,15 @@ uv run showrunner casting localizacion mi-serie Despacho "descriptor,"
 uv run showrunner casting prueba mi-serie @char_mi-serie_Nadia_v1            # R-12, en movimiento
 uv run showrunner casting aprobar mi-serie @char_mi-serie_Nadia_v1 --por tu-nombre
 
+uv run showrunner biblia "Mi serie" --idea "Una frase con la idea"          # agente showrunner
 uv run showrunner aprobar mi-serie biblia --por tu-nombre --version 1.0      # control humano 1
+uv run showrunner guion mi-serie --episodio s01_ep01                        # agente guionista
+uv run showrunner prompts mi-serie --episodio s01_ep01                      # agente director
 uv run showrunner estado --serie mi-serie        # estado plegado + métricas
 uv run showrunner eventos --export runs/eventos.jsonl
+
+uv run python evals/eval_director.py            # evaluación del linter, gratis
+uv run python evals/eval_showrunner.py          # puntúa los biblia.json que haya
 ```
 
 ## Mapa del repo
@@ -106,7 +115,9 @@ config/modelos.yaml            catálogo de modelos (vídeo e imagen), niveles y
 config/denylist.yaml           vocabulario prohibido en prompts (emociones, filtros, plataforma)
 src/showrunner/cli.py          comandos
 src/showrunner/dominio/        contratos: identidad, registro, shotlist, serie, eventos
-src/showrunner/valida/         linter determinista: prompt, plano, toma, episodio
+src/showrunner/valida/         linter determinista: prompt, plano, toma, episodio, biblia
+src/showrunner/agentes/        los 4 agentes: showrunner, guionista, director, qc
+evals/                         un script por agente + golden sets + rúbrica
 src/showrunner/providers/      base, router, fal, byteplus, mock, imagen, subida
 src/showrunner/casting.py      genera assets y escribe registry.json (R-04, R-05, R-12)
 src/showrunner/ledger.py       compatibilidad; el registro vive en dominio/eventos.py
@@ -123,7 +134,7 @@ runs/eventos.sqlite            log append-only de generaciones y veredictos (fue
 | Fase | Objetivo | Estado |
 |---|---|---|
 | 0 · Cimientos | Contratos ejecutables, linter, casting y subida de referencias · falta verificar conectores con llamada real y precios de consola | en curso |
-| 1 · Biblia | Skill `showrunner` completa, probada con 3 ideas reales del usuario | pendiente |
+| 1 · Biblia | Agente showrunner y su evaluación listos · falta probarlo con 3 ideas reales | en curso |
 | 2 · Prueba de modelos | 10 planos verticales en cada modelo: calidad, intentos y coste por plano aceptado | pendiente |
 | 3 · Episodio piloto | Assets automáticos, orquestador con Claude Agent SDK, montaje FFmpeg | pendiente |
 | 4 · Publicación | APIs de plataformas con etiqueta IA + analítica de retención | pendiente |
