@@ -26,8 +26,10 @@ def _contexto() -> Contexto:
     return Contexto(estable=[
         bloque("Políticas de plataforma y monetización",
                leer(CONOCIMIENTO / "03_plataformas_y_monetizacion.md")),
-        bloque("Qué sabe hacer y qué hace mal el modelo de vídeo",
+        bloque("Qué sabe hacer y qué hace mal el modelo de vídeo · las 12 reglas",
                leer(CONOCIMIENTO / "00_investigacion_sistema.md")),
+        bloque("Lo que cuesta rodar cada segundo · la producibilidad se puntúa con esto",
+               leer(CONOCIMIENTO / "02_proveedores_y_costes.md")),
     ])
 
 

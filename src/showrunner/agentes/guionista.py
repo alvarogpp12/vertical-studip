@@ -9,6 +9,9 @@ El agente **no inventa ids de plano**: propone un orden y el código asigna
 """
 from __future__ import annotations
 
+from pathlib import Path
+
+from ..dominio import memoria as mem
 from ..dominio import registro as reg
 from ..dominio import shotlist as sl
 from ..dominio.identidad import IdPlano, parse_episodio
@@ -21,16 +24,30 @@ from .contratos import SalidaGuionista, Sobre
 
 def agente(cliente: ClienteLLM | None = None) -> Agente:
     kwargs = {"cliente": cliente} if cliente is not None else {}
-    return Agente(nombre="guionista", skill="showrunner", modelo="claude-opus-5",
+    return Agente(nombre="guionista", skill="guionista", modelo="claude-opus-5",
                   effort="high", max_tokens=32000, **kwargs)
 
 
-def _peticion(id_episodio: str, proyecto: Proyecto, sinopsis: str, registro: reg.Registro) -> str:
-    tags = "\n".join(f"- {a.id}: {a.descriptor}" for a in registro.assets()) or "- (ninguno)"
+def fichas_de_assets(registro: reg.Registro) -> str:
+    """Lo único que el guionista puede citar. Con descriptor: si no sabe qué es un
+    `@tag`, lo coloca mal."""
+    fichas = []
+    for asset in registro.assets():
+        linea = f"- {asset.id} ({asset.estado}): {asset.descriptor}"
+        if asset.mapa:
+            linea += f"\n    mapa: {asset.mapa}"
+        fichas.append(linea)
+    return "\n".join(fichas) or "- (ninguno)"
+
+
+def _peticion(id_episodio: str, proyecto: Proyecto, sinopsis: str, registro: reg.Registro,
+              recuerdo: str) -> str:
     return f"""
 Escribe el episodio {id_episodio} de «{proyecto.titulo}».
 
-Punto de partida (de la temporada): {sinopsis or "(libre, respetando la biblia)"}
+{recuerdo}
+
+Punto de partida (de la sinopsis): {sinopsis or "(libre, respetando la biblia)"}
 
 Restricciones duras:
 - Duración total {proyecto.duracion_objetivo_min}–{proyecto.duracion_objetivo_max} s. El primer
@@ -40,8 +57,8 @@ Restricciones duras:
   travellings laterales, cámara en mano ni planos corales: es vertical.
 - El diálogo de un plano cabe a 4 palabras por segundo más 1 segundo de cola limpia.
   Si no cabe, parte el plano.
-- Sólo puedes usar estas referencias, tal cual:
-{tags}
+- Sólo puedes usar los `@tag` de la sección «Assets registrados», escritos tal cual.
+  Si el episodio necesita uno que no está, rechaza con `ASSET_INEXISTENTE`.
 - Escribe alrededor de lo que el modelo hace mal: transformaciones fuera de cámara,
   cambios de estado en un barrido, nada de multitudes ni de rebobinados.
 
@@ -51,17 +68,26 @@ Devuelve los beats y la lista de planos numerada por `orden`, empezando en 1.
 
 def escribir_episodio(biblia_md: str, estilo_md: str, registro: reg.Registro, *,
                       id_episodio: str, proyecto: Proyecto, sinopsis: str = "",
-                      cliente: ClienteLLM | None = None) -> Sobre:
+                      base: Path | None = None, cliente: ClienteLLM | None = None) -> Sobre:
+    """Escribe un episodio.
+
+    Lo que no cambia entre episodios —biblia, estilo, assets— va en el bloque
+    cacheado. La memoria de la serie cambia en cada episodio, así que viaja en el
+    mensaje: meterla en el prefijo invalidaría la caché en cada llamada.
+    """
+    recuerdo = mem.resumen(base, id_episodio) if base else ""
     contexto = Contexto(
         serie=proyecto.slug, episodio=id_episodio,
         estable=[bloque("Biblia de la serie", biblia_md),
-                 bloque("Estilo (inmutable)", estilo_md)],
+                 bloque("Estilo (inmutable)", estilo_md),
+                 bloque("Assets registrados · lo único que puedes citar",
+                        fichas_de_assets(registro))],
     )
     validador = lambda salida: valida_salida_guionista(  # noqa: E731
         salida, duracion_min=proyecto.duracion_min,
         duracion_max=proyecto.duracion_objetivo_max)
     return preguntar_validando(
-        agente(cliente), _peticion(id_episodio, proyecto, sinopsis, registro),
+        agente(cliente), _peticion(id_episodio, proyecto, sinopsis, registro, recuerdo),
         SalidaGuionista, contexto, validador,
     )
 

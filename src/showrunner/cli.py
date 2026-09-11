@@ -331,7 +331,7 @@ def guion(serie: str, episodio: str = typer.Option("s01_ep01"),
             (base / "biblia.md").read_text(encoding="utf-8"),
             (base / "style.md").read_text(encoding="utf-8"),
             reg.cargar(base / "registry.json"),
-            id_episodio=episodio, proyecto=proy, sinopsis=sinopsis)
+            id_episodio=episodio, proyecto=proy, sinopsis=sinopsis, base=base)
     except LLMNoDisponible as e:
         _sin_clave(e)
     if not sobre.ok:
@@ -384,6 +384,46 @@ def prompts(serie: str, episodio: str = typer.Option("s01_ep01"),
     con.print(f"Gasto acumulado hoy: {ev.gasto_hoy():.4f} $")
     if rechazados:
         raise typer.Exit(2)
+
+
+@app.command()
+def humo(
+    modelo: str = typer.Option("claude-sonnet-5", help="Modelo de lenguaje de la prueba"),
+    video: bool = typer.Option(False, help="Añade un plano real al nivel más barato"),
+    modelo_video: str = typer.Option("", help="Fuerza el modelo de vídeo"),
+    duracion: int = typer.Option(3, help="Segundos del plano de prueba"),
+):
+    """Primera llamada real, barata: comprueba esquema, caché y conectores.
+
+    Es lo que los mocks no pueden decir. Dos llamadas al LLM cuestan unos céntimos;
+    con --video se añade un plano de unos 0,04–0,15 $.
+    """
+    from .humo import prueba_llm, prueba_video
+
+    con.print("[bold]Prueba de humo del cerebro[/bold] (2 llamadas, unos céntimos)…")
+    informe = prueba_llm(modelo=modelo)
+    for paso in informe.pasos:
+        con.print(str(paso))
+
+    if video:
+        salida = ROOT / "runs" / "humo.mp4"
+        p = PeticionVideo(prompt="-", duracion=duracion, resolucion="480p")
+        nombre = modelo_video or elegir_modelo("borrador", p)
+        con.print(f"\n[bold]Prueba de humo del vídeo[/bold] · {nombre} · "
+                  f"{estimar_coste(nombre, p):.3f} $ estimados…")
+        informe_video = prueba_video(salida, modelo=modelo_video, duracion=duracion)
+        for paso in informe_video.pasos:
+            con.print(str(paso))
+        informe.pasos.extend(informe_video.pasos)
+        informe.coste_usd += informe_video.coste_usd
+
+    con.print(f"\nCoste real de la prueba: [bold]{informe.coste_usd:.4f} $[/bold] · "
+              f"gastado hoy: {ev.gasto_hoy():.4f} $")
+    if not informe.ok:
+        con.print("[red]Algo no responde como esperábamos.[/red] "
+                  "Arréglalo antes de gastar en un episodio.")
+        raise typer.Exit(1)
+    con.print("[green]Todo responde.[/green] Siguiente paso: docs/PLAN_DE_PRUEBAS.md")
 
 
 # ------------------------------------------------------------ orquestador

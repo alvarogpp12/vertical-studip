@@ -30,6 +30,31 @@ def agente(cliente: ClienteLLM | None = None, modelo: str = "claude-sonnet-5") -
                   effort="medium", max_tokens=4000, **kwargs)
 
 
+def ficha(registro: reg.Registro, tag: str) -> str:
+    """Todo lo que hace falta para juzgar continuidad de ese asset.
+
+    El descriptor solo no basta: las **anclas de identidad** (cicatriz, anillo) son
+    lo que de verdad se comprueba, y el mapa es lo que dice si el eje está roto.
+    """
+    asset = registro.resolver(tag)
+    lineas = [f"### {tag}", asset.descriptor]
+    if asset.notas:
+        lineas.append(asset.notas)          # las anclas se guardan aquí al registrar
+    if asset.voz_lock:
+        lineas.append(f"VOZ: {asset.voz_lock}")
+    if asset.mapa:
+        lineas.append(f"MAPA ESPACIAL: {asset.mapa}")
+    congelada = asset.cara_congelada
+    if congelada:
+        lineas.append(f"Cara de referencia (congelada, R-05): {congelada.url}")
+    return "\n".join(lineas)
+
+
+def fichas(registro: reg.Registro, tags: list[str]) -> str:
+    presentes = [t for t in tags if registro.existe(t)]
+    return "\n\n".join(ficha(registro, t) for t in presentes) or "(ninguna)"
+
+
 def _imagen(ruta: Path) -> dict:
     ruta = Path(ruta)
     media = TIPO_MIME.get(ruta.suffix.lower(), "image/png")
@@ -37,7 +62,7 @@ def _imagen(ruta: Path) -> dict:
     return {"type": "image", "source": {"type": "base64", "media_type": media, "data": datos}}
 
 
-def _peticion(fotogramas: list[Path], descriptores: str, tecnico: Resultado | None,
+def _peticion(fotogramas: list[Path], tecnico: Resultado | None,
               duracion: float) -> list[dict]:
     bloques: list[dict] = []
     for indice, ruta in enumerate(fotogramas):
@@ -45,10 +70,7 @@ def _peticion(fotogramas: list[Path], descriptores: str, tecnico: Resultado | No
         bloques.append(_imagen(ruta))
     incidencias = tecnico.resumen() if tecnico is not None else "sin incidencias técnicas"
     bloques.append({"type": "text", "text": f"""
-Juzga esta toma de {duracion:g} s contra sus referencias.
-
-Referencias activas:
-{descriptores}
+Juzga esta toma de {duracion:g} s contra las fichas de referencia que tienes arriba.
 
 El validador técnico ya ha comprobado formato, fps, duración, deriva de color y cortes:
 {incidencias}
@@ -66,12 +88,11 @@ def revisar(fotogramas: list[Path], registro: reg.Registro, tags: list[str], *,
             plano: str = "", intento: int = 1, cliente: ClienteLLM | None = None,
             confianza_minima: float = CONFIANZA_MINIMA) -> Sobre:
     """Veredicto de continuidad. Escala al modelo grande si la confianza es baja."""
-    descriptores = "\n".join(
-        f"- {t}: {registro.descriptor(t)}" for t in tags if registro.existe(t)
-    ) or "- (ninguna)"
-    peticion = _peticion(fotogramas, descriptores, tecnico, duracion)
-    contexto = Contexto(serie=serie, plano=plano, intento=intento,
-                        estable=[bloque("Referencias de la serie", descriptores)])
+    peticion = _peticion(fotogramas, tecnico, duracion)
+    contexto = Contexto(
+        serie=serie, plano=plano, intento=intento,
+        estable=[bloque("Fichas de referencia de los assets de esta toma",
+                        fichas(registro, tags))])
 
     sobre = agente(cliente).preguntar(peticion, SalidaQC, contexto)
     if not sobre.ok:

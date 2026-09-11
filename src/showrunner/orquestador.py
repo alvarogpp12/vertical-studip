@@ -379,8 +379,8 @@ class Orquestador:
                 sobre = ag_guionista.escribir_episodio(
                     (self.base / "biblia.md").read_text(encoding="utf-8"),
                     (self.base / "style.md").read_text(encoding="utf-8"),
-                    self.registro, id_episodio=id_episodio, proyecto=proyecto, sinopsis=sinopsis,
-                    cliente=self.cliente)
+                    self.registro, id_episodio=id_episodio, proyecto=proyecto,
+                    sinopsis=sinopsis, base=self.base, cliente=self.cliente)
             except LLMNoDisponible as e:
                 self.informe.anota(_sin_cerebro(f"guion {id_episodio}", e))
                 return self.informe

@@ -205,3 +205,59 @@ def test_cliente_falso_exige_el_formato_pedido():
     cliente = ClienteFalso([f.salida_qc()])      # sin envolver en Sobre
     with pytest.raises(RespuestaIlegible):
         qc.revisar([], _registro(), [], duracion=5, cliente=cliente)
+
+
+# ------------------------------------------------------ contexto de cada agente
+def test_el_guionista_recibe_los_assets_en_el_bloque_cacheado():
+    """Si no sabe qué `@tag` existe ni qué es, los coloca mal o se los inventa."""
+    from showrunner.dominio.serie import Proyecto
+
+    cliente = ClienteFalso([f.sobre(f.salida_guionista())])
+    guionista.escribir_episodio("biblia", STYLE_MD, _registro(), id_episodio="s01_ep01",
+                                proyecto=Proyecto(slug="canon-rojo", titulo="Cañón Rojo"),
+                                cliente=cliente)
+    sistema = "\n".join(b["text"] for b in cliente.llamadas[0]["sistema"])
+    assert "@char_canon-rojo_Nadia_v1" in sistema
+    assert f.DESCRIPTOR_NADIA in sistema
+    assert "Nadia a la izquierda" in sistema          # el mapa de la localización
+
+
+def test_la_memoria_de_la_serie_viaja_en_el_mensaje_no_en_la_cache(serie):
+    """Cambia en cada episodio: meterla en el prefijo invalidaría la caché siempre."""
+    from showrunner.agentes import escritura
+    from showrunner.dominio.serie import Proyecto
+
+    escritura.guardar_biblia(serie, f.salida_showrunner())
+    escritura.guardar_episodio(serie, f.salida_guionista(), "s01_ep01")
+
+    cliente = ClienteFalso([f.sobre(f.salida_guionista())])
+    guionista.escribir_episodio("biblia", STYLE_MD, _registro(), id_episodio="s01_ep02",
+                                proyecto=Proyecto(slug="canon-rojo", titulo="Cañón Rojo"),
+                                base=serie, cliente=cliente)
+    mensaje = cliente.llamadas[0]["mensajes"][0]["content"]
+    sistema = "\n".join(b["text"] for b in cliente.llamadas[0]["sistema"])
+    assert "Episodios anteriores" in mensaje and "s01_ep01" in mensaje
+    assert "alguien más tiene una copia" in mensaje   # el cliffhanger abierto
+    assert "Episodios anteriores" not in sistema
+
+
+def test_el_qc_recibe_la_ficha_completa_no_solo_el_descriptor(tmp_path):
+    """Las anclas de identidad y el mapa son lo que de verdad se comprueba."""
+    foto = tmp_path / "f0.png"
+    foto.write_bytes(b"\x89PNG\r\n\x1a\n" + b"0" * 32)
+    registro = _registro()
+    registro.resolver("@char_canon-rojo_Nadia_v1").notas = "Anclas: cicatriz en la ceja"
+    cliente = ClienteFalso([f.sobre(f.salida_qc())])
+    qc.revisar([foto], registro, ["@char_canon-rojo_Nadia_v1", "@loc_canon-rojo_Despacho_v1"],
+               duracion=5, cliente=cliente)
+    sistema = "\n".join(b["text"] for b in cliente.llamadas[0]["sistema"])
+    assert "Anclas: cicatriz en la ceja" in sistema
+    assert "MAPA ESPACIAL" in sistema
+
+
+def test_el_showrunner_ve_lo_que_cuesta_rodar():
+    """La producibilidad se puntúa contra costes reales, no contra intuición."""
+    cliente = ClienteFalso([f.sobre(f.salida_showrunner())])
+    showrunner.crear_biblia("idea", "Cañón Rojo", cliente=cliente)
+    sistema = "\n".join(b["text"] for b in cliente.llamadas[0]["sistema"])
+    assert "Coste por episodio" in sistema and "Creator Rewards" in sistema
