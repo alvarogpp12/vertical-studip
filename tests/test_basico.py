@@ -40,3 +40,11 @@ def test_mock_genera_vertical_y_qc(tmp_path: Path):
     assert paleta.paleta(frames[0])[0][0].startswith("#")
     assert paleta.delta_e_medio(frames[0], frames[0]) == 0
     assert isinstance(escenas.cortes(salida), list)
+
+
+def test_extraer_no_falla_con_duracion_multiplo_de_cada_seg(tmp_path: Path):
+    """La rejilla de instantes no debe pedir un fotograma en el segundo exacto del final."""
+    salida = tmp_path / "clip.mp4"
+    obtener_proveedor("mock").generar(PeticionVideo(prompt="x", duracion=4), salida)
+    frames = fotogramas.extraer(salida, tmp_path / "qc")  # cada_seg=2.0 por defecto, 4 % 2 == 0
+    assert len(frames) >= 3

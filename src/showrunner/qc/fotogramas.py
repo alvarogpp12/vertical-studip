@@ -10,8 +10,9 @@ from .sonda import sondear
 def extraer(video: Path, carpeta: Path, cada_seg: float = 2.0) -> list[Path]:
     carpeta.mkdir(parents=True, exist_ok=True)
     dur = sondear(video)["duracion"]
-    tiempos = sorted({0.0, round(dur / 2, 2), max(dur - 0.05, 0.0)}
-                     | {round(t * cada_seg, 2) for t in range(int(dur // cada_seg) + 1)})
+    fin = max(dur - 0.05, 0.0)  # el ultimo fotograma esta antes de dur; pedir dur exacto no devuelve nada
+    tiempos = sorted({0.0, round(dur / 2, 2), fin}
+                     | {min(round(t * cada_seg, 2), fin) for t in range(int(dur // cada_seg) + 1)})
     rutas = []
     for t in tiempos:
         ruta = carpeta / f"{video.stem}_{t:06.2f}s.jpg"
