@@ -1,0 +1,57 @@
+# Catálogo de modelos. Precios en USD por segundo generado (estimados 2026-09-11).
+# estado: confirmado = visto en la web del proveedor · estimado = fuente secundaria · verificar = rellenar/probar
+# nivel: borrador | trabajo | clave  (el router elige el más barato del nivel pedido)
+
+modelos:
+  seedance-2.0-fast@byteplus:
+    proveedor: byteplus
+    model_env: ARK_MODEL_SEEDANCE_20_FAST
+    nivel: borrador
+    precio_seg: {480p: 0.040, 720p: 0.091}
+    max_duracion: 15
+    referencias: {imagenes: 9, videos: 3, audios: 3}
+    estado: estimado
+
+  seedance-2.0@byteplus:
+    proveedor: byteplus
+    model_env: ARK_MODEL_SEEDANCE_20
+    nivel: trabajo
+    precio_seg: {480p: 0.067, 720p: 0.151}
+    max_duracion: 15
+    referencias: {imagenes: 9, videos: 3, audios: 3}
+    estado: estimado
+
+  seedance-2.5@byteplus:
+    proveedor: byteplus
+    model_env: ARK_MODEL_SEEDANCE_25
+    nivel: clave
+    precio_seg: {480p: 0.103, 720p: 0.231}
+    max_duracion: 30
+    referencias: {imagenes: 30, videos: 10, audios: 10}
+    estado: estimado
+
+  kling-3.0-standard@fal:
+    proveedor: fal
+    endpoint: fal-ai/kling-video/v3/standard/image-to-video
+    nivel: trabajo
+    precio_seg: {720p: 0.126}
+    max_duracion: 15
+    referencias: {imagenes: 1, videos: 0, audios: 0}
+    estado: confirmado
+
+  seedance-2.5@fal:
+    proveedor: fal
+    endpoint: bytedance/seedance-2.5/reference-to-video
+    nivel: clave
+    precio_seg: {480p: 0.2205, 720p: 0.473}
+    max_duracion: 30
+    referencias: {imagenes: 30, videos: 10, audios: 10}
+    estado: confirmado   # respaldo si BytePlus no está disponible (2x más caro)
+
+  mock:
+    proveedor: mock
+    nivel: borrador
+    precio_seg: {480p: 0.0, 720p: 0.0}
+    max_duracion: 30
+    referencias: {imagenes: 50, videos: 10, audios: 10}
+    estado: confirmado   # genera un clip de prueba local con ffmpeg, sin coste

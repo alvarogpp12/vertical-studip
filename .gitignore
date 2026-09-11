@@ -1,0 +1,15 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+# Medios pesados: fuera de git (usar almacenamiento externo)
+proyectos/**/tomas/
+proyectos/**/*.mp4
+proyectos/**/*.mov
+proyectos/**/*.png
+proyectos/**/*.jpg
+!templates/**
+runs/
+.DS_Store

@@ -1,0 +1,17 @@
+{
+  "episodio": "ep01",
+  "planos": [
+    {
+      "id": "ep01_sh001",
+      "beat": 1,
+      "duracion": 5,
+      "tamano": "primer plano",
+      "camara": "push-in lento",
+      "refs": ["@char_…", "@loc_…"],
+      "dialogo": "",
+      "nivel": "borrador",
+      "estado": "pendiente",
+      "toma_aprobada": null
+    }
+  ]
+}
