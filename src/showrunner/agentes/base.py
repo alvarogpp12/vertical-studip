@@ -43,11 +43,36 @@ No añadas texto fuera del JSON.
 
 
 def cargar_skill(nombre: str) -> str:
-    """El `SKILL.md` sin su frontmatter YAML."""
+    """El `SKILL.md` sin su frontmatter YAML. El procedimiento, no la referencia."""
     ruta = SKILLS / nombre / "SKILL.md"
     if not ruta.exists():
         raise FileNotFoundError(f"No existe la skill «{nombre}» en {SKILLS}")
     return FRONTMATTER.sub("", ruta.read_text(encoding="utf-8")).strip()
+
+
+def cargar_referencias(nombre: str) -> list[str]:
+    """Los `referencias/*.md` de una skill, en orden de nombre.
+
+    El `SKILL.md` dice **qué hacer**; las referencias enseñan **cómo se piensa**:
+    criterios con números, ejemplos completos comentados, el vocabulario que funciona
+    con el modelo y el catálogo de fallos con su causa. Sin esto un agente sabe el
+    procedimiento y no tiene criterio, que es exactamente como se produce material
+    mediocre a toda velocidad.
+
+    Van dentro del prefijo cacheado: son grandes, no cambian y se repiten en cada
+    llamada. Es el caso de libro de la caché de prompt.
+    """
+    carpeta = SKILLS / nombre / "referencias"
+    if not carpeta.is_dir():
+        return []
+    return [
+        f"# Referencia · {ruta.stem}\n{ruta.read_text(encoding='utf-8').strip()}"
+        for ruta in sorted(carpeta.glob("*.md"))
+    ]
+
+
+def contexto_de_skill(nombre: str) -> list[str]:
+    return [cargar_skill(nombre), *cargar_referencias(nombre)]
 
 
 @dataclass
@@ -80,7 +105,7 @@ class Agente:
         El único `cache_control` va al final: todo lo anterior entra en la caché y
         lo que cambia por llamada viaja en `messages`.
         """
-        bloques = [cargar_skill(self.skill), INSTRUCCIONES_SOBRE, *contexto.estable]
+        bloques = [*contexto_de_skill(self.skill), INSTRUCCIONES_SOBRE, *contexto.estable]
         sistema = [{"type": "text", "text": b} for b in bloques if b.strip()]
         sistema[-1]["cache_control"] = {"type": "ephemeral", "ttl": "1h"}
         return sistema

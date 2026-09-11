@@ -62,7 +62,8 @@ Validadas en ≥ 2 producciones del top 30 de Higgsfield. Detalle en `docs/conoc
 - **El estado de un plano no se escribe, se pliega** desde `runs/eventos.sqlite` (`showrunner estado`). Un campo `estado` a mano miente; un log append-only no.
 - **Nada se genera sin pasar el linter** (`showrunner valida prompt`). Corre también como hook `PreToolUse`.
 - **Los agentes son funciones tipadas**, no sesiones: `(entrada, contexto) -> Resultado | Rechazo`. Las llamadas caras (vídeo, imagen) van siempre fuera del agente.
-- **Los `SKILL.md` son el system prompt de cada agente.** Una sola fuente: se afinan a mano en Claude Code y el pipeline los carga y los cachea.
+- **Los `SKILL.md` son el system prompt de cada agente**, y sus `referencias/*.md` van detrás, dentro del mismo prefijo cacheado. El SKILL dice *qué hacer*; las referencias enseñan *cómo se piensa*: criterios con números, ejemplos completos comentados, vocabulario y catálogo de fallos. Una sola fuente: se afinan a mano en Claude Code y el pipeline las carga.
+- **Toda referencia separa lo validado de la hipótesis** (`[V]` / `[H]`). Un agente con criterio inventado produce material mediocre a toda velocidad.
 - **Un agente no inventa ids** (de plano ni de asset): los genera el código.
 - **Antes de cada llamada cara, huella de contenido** (`sha256` de modelo + parámetros + referencias + plano). Un rerun no vuelve a pagar lo ya generado.
 - **Dos límites de gasto distintos**: el tope diario (`BUDGET_MAX_PER_DAY`) y el fusible de cada ejecución (`--max-gasto`).
@@ -79,6 +80,8 @@ Validadas en ≥ 2 producciones del top 30 de Higgsfield. Detalle en `docs/conoc
 uv sync --extra dev                      # dependencias
 uv run pytest -q                         # tests
 uv run showrunner doctor                 # diagnóstico sin coste
+uv run showrunner humo                   # primera llamada real: esquema, caché y coste (~0,03 $)
+uv run showrunner humo --video           # + un plano real de 3 s (~0,05 $)
 uv run showrunner modelos                # catálogo y precios
 uv run showrunner nuevo "Título" --idea "…"
 uv run showrunner estimar --duracion 5 --resolucion 480p --nivel borrador
@@ -135,7 +138,9 @@ src/showrunner/proyecto.py     crea series desde templates/proyecto
 scripts/hook_lint_prompt.py    hook PreToolUse: no deja salir un prompt inválido
 templates/proyecto/            biblia, style, voces, registry, temporada, shotlist, proyecto
 proyectos/<serie>/             una carpeta por serie (texto en git, medias fuera)
-.claude/skills/                showrunner · director-vertical · qc-continuidad
+.claude/skills/<agente>/SKILL.md          procedimiento (el system prompt)
+.claude/skills/<agente>/referencias/*.md  criterios, ejemplos, vocabulario, errores
+docs/PLAN_DE_PRUEBAS.md        siete fases de verificación, de 0,03 $ a 45 $
 runs/eventos.sqlite            log append-only de generaciones y veredictos (fuera de git)
 ```
 

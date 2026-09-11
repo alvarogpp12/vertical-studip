@@ -48,7 +48,7 @@ Claude Code lee [CLAUDE.md](CLAUDE.md) automáticamente: objetivo, decisiones, r
 | Conector BytePlus ModelArk | Seedance 2.0 Fast, 2.0, 2.5 (API oficial de ByteDance) | ⚠️ verificar con llamada real |
 | QC técnico | Formato 9:16, fps, cortes, fotogramas clave, paleta hex, deriva de color ΔE | ✅ |
 | Plantilla de serie | biblia, style, voces, registry, temporada, shotlist | ✅ |
-| Skills del agente | director-vertical v0.1 · qc-continuidad v0.1 · showrunner v0.0 | 🧱 |
+| Conocimiento de los agentes | 4 skills v1.0 + referencias: criterios, ejemplos comentados, vocabulario y catálogo de fallos (~1.300 líneas) | ✅ |
 | Agentes (showrunner, guionista, director, QC) | Funciones tipadas con salida estructurada y canal de rechazo | ✅ pendiente de 1.ª llamada real |
 | Evaluación | Un script por agente, rúbrica de `docs/conocimiento/`, acuerdo juez–humano | ✅ |
 | Orquestador | Máquina de estados con gates humanos, idempotencia por huella y fusible de gasto | ✅ |
@@ -69,6 +69,7 @@ Precios estimados a septiembre de 2026; los confirmados viven en `config/modelos
 ## Uso rápido
 ```bash
 uv run showrunner doctor
+uv run showrunner humo                                               # ~0,03 $, primera llamada real
 uv run showrunner modelos
 uv run showrunner nuevo "Mi serie" --idea "Una frase con la idea"
 uv run showrunner estimar --duracion 5 --resolucion 480p --nivel borrador
@@ -88,7 +89,7 @@ uv run python evals/eval_director.py                                 # evaluaci�
 ## Estructura
 ```
 CLAUDE.md                 instrucciones para Claude Code
-docs/                     estado, plan de acciones, flujo de trabajo, investigación
+docs/                     estado, plan de pruebas, flujo de trabajo, investigación
 config/modelos.yaml       catálogo de modelos y precios
 src/showrunner/dominio/   contratos: ids, registro, shotlist, proyecto, log de eventos
 src/showrunner/valida/    linter determinista: prompt, plano, toma, episodio, biblia
