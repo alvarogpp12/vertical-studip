@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "serie": "la-racha",
+  "personajes": {
+    "@char_la-racha_Nil_v1": {
+      "id": "@char_la-racha_Nil_v1",
+      "descriptor": "Young man, nineteen, thin build, short dark curly hair, faint acne scars on the left cheek, a black fabric wristband on the right wrist, black hooded sweatshirt over a grey t-shirt, cheap white earphones with a frayed cable.",
+      "referencias": [],
+      "estado": "pendiente",
+      "version": 1,
+      "creado_con": "",
+      "voz_lock": "No habla en toda la pieza. Sólo respiración.",
+      "mapa": "",
+      "notas": "Anclas: cicatrices de acné en la mejilla izquierda, pulsera negra de tela en la muñeca derecha, auriculares blancos con el cable pelado"
+    }
+  },
+  "localizaciones": {
+    "@loc_la-racha_Calle_v1": {
+      "id": "@loc_la-racha_Calle_v1",
+      "descriptor": "A narrow street in a Spanish provincial city at dusk: four-storey cream facades with green louvred shutters and wrought-iron balconies, a tiled bar front with a dark green awning, warm sodium streetlights, wet pavement, parked scooters against the kerb.",
+      "referencias": [],
+      "estado": "pendiente",
+      "version": 1,
+      "creado_con": "",
+      "voz_lock": "",
+      "mapa": "Nil baja por la acera de la izquierda, la fachada del bar a su derecha, la calle se hunde al fondo. La cámara mira calle abajo.",
+      "notas": "Estados: atardecer, noche"
+    },
+    "@loc_la-racha_Salon_v1": {
+      "id": "@loc_la-racha_Salon_v1",
+      "descriptor": "A small ground-floor gaming arcade: a row of slot terminals along the right wall, one roulette terminal at the back, red and green screen light on a dark patterned carpet, low ceiling of square panels, a counter with a dead plant camera-left.",
+      "referencias": [],
+      "estado": "pendiente",
+      "version": 1,
+      "creado_con": "",
+      "voz_lock": "",
+      "mapa": "Nil de pie frente al terminal del fondo, el mostrador a su izquierda de cámara, la fila de máquinas a su derecha. La cámara mira al fondo.",
+      "notas": "Estados: noche"
+    }
+  },
+  "props": {},
+  "voces": {}
+}

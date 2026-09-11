@@ -1,0 +1,226 @@
+{
+  "episodio": "s01_ep01",
+  "planos": [
+    {
+      "id": "s01_ep01_sh001",
+      "beat": 1,
+      "duracion": 4,
+      "duracion_montaje": 1,
+      "tamano": "plano general",
+      "camara": "fijo",
+      "refs": [
+        "@loc_la-racha_Calle_v1"
+      ],
+      "dialogo": "",
+      "nivel": "borrador",
+      "es_master": true,
+      "orden_montaje": 1,
+      "prompt_path": null,
+      "seed": null,
+      "notas": "R-06 · máster de geografía de la calle. Se generan 4 s (mínimo del modelo) y se monta 1"
+    },
+    {
+      "id": "s01_ep01_sh002",
+      "beat": 1,
+      "duracion": 5,
+      "duracion_montaje": null,
+      "tamano": "primer plano",
+      "camara": "fijo",
+      "refs": [
+        "@char_la-racha_Nil_v1"
+      ],
+      "dialogo": "",
+      "nivel": "borrador",
+      "es_master": false,
+      "orden_montaje": 2,
+      "prompt_path": null,
+      "seed": null,
+      "notas": "GANCHO 0-3 s · su cara cruzada por una luz roja y verde que parpadea. No sabemos qué mira"
+    },
+    {
+      "id": "s01_ep01_sh003",
+      "beat": 2,
+      "duracion": 6,
+      "duracion_montaje": null,
+      "tamano": "plano medio",
+      "camara": "tilt",
+      "refs": [
+        "@char_la-racha_Nil_v1",
+        "@loc_la-racha_Calle_v1"
+      ],
+      "dialogo": "",
+      "nivel": "borrador",
+      "es_master": false,
+      "orden_montaje": 3,
+      "prompt_path": null,
+      "seed": null,
+      "notas": "Corte al atardecer: baja por la acera con la mochila colgando de un hombro"
+    },
+    {
+      "id": "s01_ep01_sh004",
+      "beat": 2,
+      "duracion": 5,
+      "duracion_montaje": null,
+      "tamano": "inserto",
+      "camara": "fijo",
+      "refs": [
+        "@loc_la-racha_Calle_v1"
+      ],
+      "dialogo": "",
+      "nivel": "borrador",
+      "es_master": false,
+      "orden_montaje": 4,
+      "prompt_path": null,
+      "seed": null,
+      "notas": "Sus zapatillas se paran en seco delante de una puerta. No se ve la puerta"
+    },
+    {
+      "id": "s01_ep01_sh005",
+      "beat": 2,
+      "duracion": 6,
+      "duracion_montaje": null,
+      "tamano": "plano medio",
+      "camara": "push-in",
+      "refs": [
+        "@char_la-racha_Nil_v1",
+        "@loc_la-racha_Calle_v1"
+      ],
+      "dialogo": "",
+      "nivel": "borrador",
+      "es_master": false,
+      "orden_montaje": 5,
+      "prompt_path": null,
+      "seed": null,
+      "notas": "Se quita UN auricular y mira arriba, fuera de cuadro. El cartel nunca se ve"
+    },
+    {
+      "id": "s01_ep01_sh006",
+      "beat": 3,
+      "duracion": 4,
+      "duracion_montaje": null,
+      "tamano": "plano general",
+      "camara": "fijo",
+      "refs": [
+        "@loc_la-racha_Salon_v1"
+      ],
+      "dialogo": "",
+      "nivel": "borrador",
+      "es_master": true,
+      "orden_montaje": 6,
+      "prompt_path": null,
+      "seed": null,
+      "notas": "Máster de geografía del salón: la segunda localización también necesita el suyo"
+    },
+    {
+      "id": "s01_ep01_sh007",
+      "beat": 3,
+      "duracion": 6,
+      "duracion_montaje": null,
+      "tamano": "plano medio",
+      "camara": "fijo",
+      "refs": [
+        "@char_la-racha_Nil_v1",
+        "@loc_la-racha_Salon_v1"
+      ],
+      "dialogo": "",
+      "nivel": "borrador",
+      "es_master": false,
+      "orden_montaje": 7,
+      "prompt_path": null,
+      "seed": null,
+      "notas": "De pie frente al terminal del fondo. La mochila sigue colgando. No se sienta"
+    },
+    {
+      "id": "s01_ep01_sh008",
+      "beat": 3,
+      "duracion": 5,
+      "duracion_montaje": null,
+      "tamano": "primer plano",
+      "camara": "fijo",
+      "refs": [
+        "@char_la-racha_Nil_v1"
+      ],
+      "dialogo": "",
+      "nivel": "borrador",
+      "es_master": false,
+      "orden_montaje": 8,
+      "prompt_path": null,
+      "seed": null,
+      "notas": "La luz de la ruleta girando le cruza la cara. Es la misma luz del plano 2"
+    },
+    {
+      "id": "s01_ep01_sh009",
+      "beat": 3,
+      "duracion": 6,
+      "duracion_montaje": null,
+      "tamano": "plano medio",
+      "camara": "tilt",
+      "refs": [
+        "@char_la-racha_Nil_v1",
+        "@loc_la-racha_Salon_v1"
+      ],
+      "dialogo": "",
+      "nivel": "borrador",
+      "es_master": false,
+      "orden_montaje": 9,
+      "prompt_path": null,
+      "seed": null,
+      "notas": "GIRO · el móvil vibra en la repisa. Baja la mano y lo silencia sin mirarlo"
+    },
+    {
+      "id": "s01_ep01_sh010",
+      "beat": 4,
+      "duracion": 5,
+      "duracion_montaje": null,
+      "tamano": "primer plano",
+      "camara": "fijo",
+      "refs": [
+        "@char_la-racha_Nil_v1"
+      ],
+      "dialogo": "",
+      "nivel": "borrador",
+      "es_master": false,
+      "orden_montaje": 10,
+      "prompt_path": null,
+      "seed": null,
+      "notas": "Mira el móvil medio segundo. Vuelve a la pantalla"
+    },
+    {
+      "id": "s01_ep01_sh011",
+      "beat": 4,
+      "duracion": 7,
+      "duracion_montaje": null,
+      "tamano": "plano medio",
+      "camara": "pull-back",
+      "refs": [
+        "@char_la-racha_Nil_v1",
+        "@loc_la-racha_Salon_v1"
+      ],
+      "dialogo": "",
+      "nivel": "borrador",
+      "es_master": false,
+      "orden_montaje": 11,
+      "prompt_path": null,
+      "seed": null,
+      "notas": "Se queda quieto mientras la máquina sigue. El plano se abre muy despacio"
+    },
+    {
+      "id": "s01_ep01_sh012",
+      "beat": 4,
+      "duracion": 8,
+      "duracion_montaje": null,
+      "tamano": "primer plano",
+      "camara": "fijo",
+      "refs": [
+        "@char_la-racha_Nil_v1"
+      ],
+      "dialogo": "",
+      "nivel": "borrador",
+      "es_master": false,
+      "orden_montaje": 12,
+      "prompt_path": null,
+      "seed": null,
+      "notas": "CIERRE · la luz roja parpadea y se apaga. Su cara se queda a oscuras. Silencio"
+    }
+  ]
+}
