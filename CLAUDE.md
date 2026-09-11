@@ -57,12 +57,15 @@ Validadas en ≥ 2 producciones del top 30 de Higgsfield. Detalle en `docs/conoc
 **Fallo conocido del LLM:** tiende a "hacer de director" (añade detalles, cambia cortes). Antes de generar, revisa que referencias activas, acción y mapa coinciden con el shotlist.
 
 ## Reglas de ingeniería
-- **Nunca** llamar a una API de generación fuera de `showrunner generar` o de `providers/`: ahí están el límite de gasto y el ledger.
+- **Nunca** llamar a una API de generación fuera de `showrunner generar`, `showrunner casting` o de `providers/`: ahí están el límite de gasto y el registro de eventos.
+- **Un solo id de plano: `s01_ep01_sh003`.** La forma corta `ep01_sh001` está retirada.
+- **El estado de un plano no se escribe, se pliega** desde `runs/eventos.sqlite` (`showrunner estado`). Un campo `estado` a mano miente; un log append-only no.
+- **Nada se genera sin pasar el linter** (`showrunner valida prompt`). Corre también como hook `PreToolUse`.
 - **Nunca** leer, imprimir ni commitear `.env` ni claves. Las medias (mp4, png, jpg) no van a git.
 - **No usar nivel `clave`** sin una toma aprobada en `borrador`.
 - Antes de cualquier generación real: estima el coste con `showrunner estimar` y dilo. Si una tarea puede gastar más de **5 $**, pide confirmación.
 - Precios y modelos: solo en `config/modelos.yaml`, con `estado: confirmado | estimado | verificar`.
-- Nuevos proveedores: clase en `src/showrunner/providers/` que herede de `Proveedor`, registrada en `router.py`, con test usando mocks (sin llamadas reales en CI).
+- Nuevos proveedores: clase en `src/showrunner/providers/` que herede de `Proveedor` (vídeo) o `ProveedorImagen`, registrada en su router, con test usando mocks (sin llamadas reales en CI).
 - Flujo git: 1 issue = 1 rama (`feat/12-descripcion`) = 1 PR. Commits `feat:` `fix:` `docs:` `skill:` `config:`. Nunca a `main` directamente ni `push --force`. Ver `docs/FLUJO_DE_TRABAJO.md`.
 - Tests: `uv run pytest` en verde antes de cada commit.
 
@@ -76,7 +79,20 @@ uv run showrunner nuevo "Título" --idea "…"
 uv run showrunner estimar --duracion 5 --resolucion 480p --nivel borrador
 uv run showrunner generar prompt.md --salida proyectos/<serie>/episodios/ep01/tomas/sh001_t1.mp4 --nivel borrador --duracion 5 --plano ep01_sh001
 uv run showrunner generar prompt.md --salida runs/prueba.mp4 --modelo mock --duracion 3   # gratis
-uv run showrunner qc ruta.mp4 --referencia ref.png
+uv run showrunner qc ruta.mp4 --referencia ref.png --plano s01_ep01_sh001
+
+uv run showrunner valida prompt prompt.md --serie mi-serie --plano s01_ep01_sh003   # linter, gratis
+uv run showrunner valida shotlist mi-serie --episodio s01_ep01
+uv run showrunner valida episodio final.mp4 --serie mi-serie --etiqueta-ia
+
+uv run showrunner casting personaje mi-serie Nadia "descriptor congelado,"   # cara + hoja (R-05)
+uv run showrunner casting localizacion mi-serie Despacho "descriptor,"
+uv run showrunner casting prueba mi-serie @char_mi-serie_Nadia_v1            # R-12, en movimiento
+uv run showrunner casting aprobar mi-serie @char_mi-serie_Nadia_v1 --por tu-nombre
+
+uv run showrunner aprobar mi-serie biblia --por tu-nombre --version 1.0      # control humano 1
+uv run showrunner estado --serie mi-serie        # estado plegado + métricas
+uv run showrunner eventos --export runs/eventos.jsonl
 ```
 
 ## Mapa del repo
@@ -86,22 +102,27 @@ docs/ESTADO.md                 estado vivo del proyecto (actualizar siempre)
 docs/PLAN_ACCIONES.md          acciones que hace el usuario (cuentas, claves)
 docs/FLUJO_DE_TRABAJO.md       git, ramas, PR
 docs/conocimiento/             investigación: sistema, objetivo, proveedores, plataformas
-config/modelos.yaml            catálogo de modelos, niveles y precios
+config/modelos.yaml            catálogo de modelos (vídeo e imagen), niveles y precios
+config/denylist.yaml           vocabulario prohibido en prompts (emociones, filtros, plataforma)
 src/showrunner/cli.py          comandos
-src/showrunner/providers/      base, router, fal, byteplus, mock
-src/showrunner/ledger.py       registro de generaciones + límites de gasto
+src/showrunner/dominio/        contratos: identidad, registro, shotlist, serie, eventos
+src/showrunner/valida/         linter determinista: prompt, plano, toma, episodio
+src/showrunner/providers/      base, router, fal, byteplus, mock, imagen, subida
+src/showrunner/casting.py      genera assets y escribe registry.json (R-04, R-05, R-12)
+src/showrunner/ledger.py       compatibilidad; el registro vive en dominio/eventos.py
 src/showrunner/qc/             sonda (ffprobe), fotogramas, paleta/ΔE, escenas
 src/showrunner/proyecto.py     crea series desde templates/proyecto
-templates/proyecto/            biblia, style, voces, registry, temporada, shotlist
+scripts/hook_lint_prompt.py    hook PreToolUse: no deja salir un prompt inválido
+templates/proyecto/            biblia, style, voces, registry, temporada, shotlist, proyecto
 proyectos/<serie>/             una carpeta por serie (texto en git, medias fuera)
 .claude/skills/                showrunner · director-vertical · qc-continuidad
-runs/ledger.jsonl              histórico de generaciones (fuera de git)
+runs/eventos.sqlite            log append-only de generaciones y veredictos (fuera de git)
 ```
 
 ## Hoja de ruta
 | Fase | Objetivo | Estado |
 |---|---|---|
-| 0 · Cimientos | Conectores verificados con llamada real, precios de consola, subida de referencias a R2, CI verde | en curso |
+| 0 · Cimientos | Contratos ejecutables, linter, casting y subida de referencias · falta verificar conectores con llamada real y precios de consola | en curso |
 | 1 · Biblia | Skill `showrunner` completa, probada con 3 ideas reales del usuario | pendiente |
 | 2 · Prueba de modelos | 10 planos verticales en cada modelo: calidad, intentos y coste por plano aceptado | pendiente |
 | 3 · Episodio piloto | Assets automáticos, orquestador con Claude Agent SDK, montaje FFmpeg | pendiente |

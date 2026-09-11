@@ -17,6 +17,7 @@ description: Escribe prompts de vídeo para Seedance/Kling en formato vertical 9
    - ¿Hay vocabulario que active filtros (desvestir, arrancar…)? Reformular.
    - ¿Pide algo que el modelo hace mal (transformación en cámara, rebobinado, multitud)? Rediseñar el plano.
 5. Entregar SOLO el prompt.
+6. Pasar el linter antes de gastar: `showrunner valida prompt <archivo> --serie <slug> --plano s01_ep01_shNNN`. Si devuelve errores, corrige; no se genera nada hasta que salga limpio.
 
 ## Estructura fija del prompt
 STYLE PREFIX (copiado de style.md) · SCENE CONTEXT · ACTIVE REFERENCES (cada @tag con su función) · LOCATION MAP (vertical, anclado a objetos visibles) · FIRST FRAME · SEGMENTS (tiempos) · DIALOGUE · PERFORMANCE (tarea, no emoción; estados, no transiciones; ojos vivos) · CAMERA (1 movimiento máx.) · LIGHTING · PHYSICS · AUDIO ("No music") · CONSTRAINTS (copiado) · POSITIVE LOCKS ("… = toma fallida").
@@ -28,7 +29,9 @@ R-04 Localización: "controls geometry, materials and light only, never framing"
 R-06 Primer plano de cada escena: máster de 1 s sin acción para fijar geografía.
 R-07 Nunca "triste/enfadado/asustado": objetivo, obstáculo, táctica.
 R-08 Describe lo que quieres; los límites como condición de toma fallida.
-R-11 Al corregir, cambia UNA línea. Tras 20 fallos, cambia el plano.
+R-09 "No music" siempre; el diálogo cabe a ~4 palabras/s + 1 s de cola limpia (lo comprueba `valida plano`).
+R-11 Al corregir, cambia UNA línea. Tras 20 fallos el plano se bloquea solo: cambia el plano.
+Los ids de plano son siempre `s01_ep01_sh003`.
 
 ## Vertical 9:16
 - Ojos en el tercio superior; quinto inferior libre para subtítulos; márgenes de interfaz 130 px arriba / 320 px abajo en 1080×1920.

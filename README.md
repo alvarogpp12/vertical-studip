@@ -38,14 +38,18 @@ Claude Code lee [CLAUDE.md](CLAUDE.md) automáticamente: objetivo, decisiones, r
 
 | Pieza | Qué hace | Estado |
 |---|---|---|
-| `showrunner` (CLI) | doctor · modelos · nuevo · estimar · generar · qc | ✅ |
+| `showrunner` (CLI) | doctor · modelos · nuevo · estimar · generar · qc · valida · casting · estado · eventos · aprobar | ✅ |
+| Contratos de datos | `registry.json`, `shotlist.json` y `proyecto.json` validados en código (Pydantic) | ✅ |
 | Router de modelos | Elige el modelo más barato del nivel pedido (borrador / trabajo / clave) | ✅ |
-| Control de gasto | Límite por tarea y por día; cada generación queda en `runs/ledger.jsonl` | ✅ |
+| Control de gasto | Límite por tarea y por día, reservado en una transacción; todo en `runs/eventos.sqlite` | ✅ |
+| Linter de prompts | R-01…R-09 antes de gastar, y como hook `PreToolUse` en Claude Code | ✅ |
+| Casting | Cara + hoja multiángulo, localizaciones, subida a URL pública y escritura del registro | ✅ con `mock`; pendiente 1.ª llamada real |
 | Conector fal.ai | Kling 3.0, Seedance 2.5 | ✅ pendiente de 1.ª llamada real |
 | Conector BytePlus ModelArk | Seedance 2.0 Fast, 2.0, 2.5 (API oficial de ByteDance) | ⚠️ verificar con llamada real |
 | QC técnico | Formato 9:16, fps, cortes, fotogramas clave, paleta hex, deriva de color ΔE | ✅ |
 | Plantilla de serie | biblia, style, voces, registry, temporada, shotlist | ✅ |
 | Skills del agente | director-vertical v0.1 · qc-continuidad v0.1 · showrunner v0.0 | 🧱 |
+| Agentes (showrunner, guionista, director, QC) | Funciones tipadas sobre los contratos, con evals | ⏳ |
 | Orquestador autónomo, montaje, publicación | Claude Agent SDK + FFmpeg + APIs de plataformas | ⏳ |
 
 ### Niveles de generación
@@ -67,6 +71,8 @@ uv run showrunner nuevo "Mi serie" --idea "Una frase con la idea"
 uv run showrunner estimar --duracion 5 --resolucion 480p --nivel borrador
 uv run showrunner generar prompt.md --salida runs/prueba.mp4 --modelo mock --duracion 3   # gratis
 uv run showrunner qc runs/prueba.mp4
+uv run showrunner valida shotlist mi-serie --episodio s01_ep01   # gratis, sin red
+uv run showrunner estado --serie mi-serie                        # intentos, coste y métricas
 ```
 
 ## Estructura
@@ -74,7 +80,9 @@ uv run showrunner qc runs/prueba.mp4
 CLAUDE.md                 instrucciones para Claude Code
 docs/                     estado, plan de acciones, flujo de trabajo, investigación
 config/modelos.yaml       catálogo de modelos y precios
-src/showrunner/           código: proveedores, router, ledger, qc, cli
+src/showrunner/dominio/   contratos: ids, registro, shotlist, proyecto, log de eventos
+src/showrunner/valida/    linter determinista: prompt, plano, toma, episodio
+src/showrunner/           código: proveedores, router, casting, qc, cli
 templates/proyecto/       plantilla de cada serie
 proyectos/<serie>/        una carpeta por serie
 .claude/                  skills y permisos de Claude Code
@@ -83,6 +91,7 @@ proyectos/<serie>/        una carpeta por serie
 ## Reglas del repo
 - `main` siempre funciona: 1 issue = 1 rama = 1 PR, con la CI en verde. Ver [docs/FLUJO_DE_TRABAJO.md](docs/FLUJO_DE_TRABAJO.md).
 - Nunca se suben claves, `.env`, vídeos ni imágenes.
+- Un solo id de plano: `s01_ep01_sh003`. El estado de cada plano se pliega del log de eventos, no se escribe a mano.
 - Todo el contenido publicado se etiqueta como generado con IA. Sin caras, voces ni propiedad intelectual de terceros.
 
 ## Hoja de ruta
