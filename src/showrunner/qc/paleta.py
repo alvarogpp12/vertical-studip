@@ -25,7 +25,10 @@ def paleta(imagen: Path, k: int = 5) -> list[tuple[str, float]]:
 
 
 def delta_e_medio(a: Path, b: Path) -> float:
-    """ΔE (CIE76) entre los colores medios en Lab. <5 muy parecido · 5–15 deriva visible · >15 otro look."""
+    """ΔE (CIE76) entre los colores medios en Lab.
+
+    <5 muy parecido · 5–15 deriva visible · >15 otro look.
+    """
     def lab_medio(p: Path):
         img = cv2.imread(str(p))
         lab = cv2.cvtColor(cv2.resize(img, (160, 160)), cv2.COLOR_BGR2LAB).astype(np.float32)

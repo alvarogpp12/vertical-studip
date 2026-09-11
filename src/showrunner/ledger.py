@@ -1,47 +1,36 @@
-"""Registro de cada generación (prompt, refs, modelo, coste, veredicto) + control de gasto."""
+"""Compatibilidad: el ledger vive ahora en `dominio.eventos` (SQLite).
+
+`runs/ledger.jsonl` se sustituye por `runs/eventos.sqlite`. Este módulo mantiene la
+API antigua para no romper llamadas existentes; lo nuevo debe usar
+`dominio.eventos` directamente, que además registra fallos y cierra el TOCTOU del
+presupuesto.
+"""
 from __future__ import annotations
 
-import json
-import time
-from datetime import date
-from pathlib import Path
+from .config import ROOT
+from .dominio.eventos import (  # noqa: F401  (re-exportado a propósito)
+    PresupuestoExcedido,
+    cerrar,
+    comprobar_presupuesto,
+    gasto_hoy,
+    migrar_jsonl,
+    reservar,
+)
 
-from .config import ROOT, presupuesto
-
-LEDGER = ROOT / "runs" / "ledger.jsonl"
-
-
-class PresupuestoExcedido(RuntimeError):
-    pass
-
-
-def gasto_hoy() -> float:
-    if not LEDGER.exists():
-        return 0.0
-    hoy = date.today().isoformat()
-    total = 0.0
-    for line in LEDGER.read_text(encoding="utf-8").splitlines():
-        row = json.loads(line)
-        if row.get("fecha", "").startswith(hoy):
-            total += float(row.get("coste_usd", 0))
-    return total
-
-
-def comprobar_presupuesto(coste_estimado: float) -> None:
-    max_job, max_dia = presupuesto()
-    if coste_estimado > max_job:
-        raise PresupuestoExcedido(
-            f"Coste estimado {coste_estimado:.2f} $ supera el límite por tarea ({max_job} $)."
-        )
-    if gasto_hoy() + coste_estimado > max_dia:
-        raise PresupuestoExcedido(
-            f"Se superaría el límite diario ({max_dia} $). Gastado hoy: {gasto_hoy():.2f} $."
-        )
+LEDGER_ANTIGUO = ROOT / "runs" / "ledger.jsonl"
 
 
 def registrar(**campos) -> dict:
-    LEDGER.parent.mkdir(parents=True, exist_ok=True)
-    row = {"fecha": time.strftime("%Y-%m-%dT%H:%M:%S"), **campos}
-    with LEDGER.open("a", encoding="utf-8") as f:
-        f.write(json.dumps(row, ensure_ascii=False) + "\n")
-    return row
+    """Alta directa de una generación ya cerrada (ruta antigua, sin reserva previa)."""
+    from .dominio import eventos
+
+    coste = float(campos.pop("coste_usd", 0) or 0)
+    plano = campos.pop("plano", "") or ""
+    veredicto = campos.pop("veredicto", None)
+    solicitud = eventos.registrar(
+        "generacion_solicitada", plano=plano, intento=1, coste_estimado=coste,
+        **{k: campos.get(k) for k in ("modelo", "prompt", "imagenes", "duracion", "resolucion")},
+    )
+    eventos.cerrar(solicitud, ok=True, coste_real=coste,
+                   **{k: campos.get(k) for k in ("salida", "task_id", "seed", "tecnico")})
+    return {"solicitud": solicitud, "plano": plano, "coste_usd": coste, "veredicto": veredicto}

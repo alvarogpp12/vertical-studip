@@ -1,5 +1,6 @@
 # BIBLIA · {TÍTULO}
-> Estado: borrador · Versión: 0.1 · Aprobada por: —
+> Estado: borrador · Versión: 0.1
+> La aprobación humana se registra en `proyecto.json` (firma, fecha y versión), no aquí.
 
 ## 1. Concepto
 - Logline (1 frase):
@@ -27,13 +28,13 @@
 - Objetivo de temporada:
 
 ## 5. Localizaciones  (máx. 2–3)
-### @loc_{SLUG}_{NOMBRE}
+### @loc_{SLUG}_{NOMBRE}_v1
 - Descripción (controla geometría, materiales y luz; nunca el encuadre):
 - Mapa espacial vertical (posiciones ancladas a objetos visibles; eje de cámara):
 - Estados (día/noche):
 
 ## 6. Props
-### @prop_{SLUG}_{NOMBRE}
+### @prop_{SLUG}_{NOMBRE}_v1
 - Descripción y estados:
 
 ## 7. Estilo (ver style.md)

@@ -1,0 +1,89 @@
+# Vocabulario que no debe aparecer en un prompt de generación.
+# Fuentes: docs/conocimiento/00_investigacion_sistema.md (filtros de los modelos)
+# y docs/conocimiento/03_plataformas_y_monetizacion.md (políticas de plataforma).
+# Se comparan en minúsculas y sin acentos, como palabra completa.
+
+# R-07 · tareas, no emociones. El modelo no sabe actuar "triste"; sabe hacer tareas.
+emociones:
+  - triste
+  - tristeza
+  - enfadado
+  - enfadada
+  - furioso
+  - furiosa
+  - asustado
+  - asustada
+  - nervioso
+  - nerviosa
+  - feliz
+  - contento
+  - contenta
+  - emocionado
+  - emocionada
+  - sad
+  - sadly
+  - angry
+  - angrily
+  - furious
+  - scared
+  - afraid
+  - nervous
+  - happy
+  - happily
+  - excited
+  - emotional
+  - emotionally
+
+# Vocabulario que dispara los filtros de contenido de Seedance/Kling.
+filtros:
+  - desvestir
+  - desnudo
+  - desnuda
+  - arrancar la ropa
+  - sangre
+  - sangrando
+  - herida abierta
+  - undress
+  - undressing
+  - naked
+  - nude
+  - rip off her clothes
+  - rip off his clothes
+  - blood
+  - bleeding
+  - gore
+  - corpse
+  - suicide
+  - suicidio
+
+# 03_plataformas · ni caras ni voces reales ni propiedad intelectual ajena.
+plataforma:
+  - celebrity
+  - celebridad
+  - real person
+  - persona real
+  - deepfake
+  - look-alike
+  - lookalike
+  - parecido a
+  - voice of
+  - voz de famoso
+  - disney
+  - marvel
+  - netflix
+  - pixar
+  - star wars
+  - harry potter
+
+# R-02 · cada prompt es una isla: nada heredado de otro plano.
+herencia:
+  - plano anterior
+  - escena anterior
+  - como antes
+  - igual que antes
+  - previous shot
+  - previous scene
+  - same as before
+  - as before
+  - continuing from
+  - continues from

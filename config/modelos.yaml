@@ -55,3 +55,30 @@ modelos:
     max_duracion: 30
     referencias: {imagenes: 50, videos: 10, audios: 10}
     estado: confirmado   # genera un clip de prueba local con ffmpeg, sin coste
+
+# Modelos de imagen: hojas de personaje y localizaciones. Precio en USD por imagen.
+# usos: hojas | localizaciones | props
+modelos_imagen:
+  nano-banana-pro@fal:
+    proveedor: fal
+    endpoint: fal-ai/nano-banana-pro/edit
+    usos: [hojas]
+    precio_img: 0.15
+    referencias: {imagenes: 14}
+    estado: verificar   # endpoint y precio sin confirmar con llamada real
+
+  seedream-5.0-pro@fal:
+    proveedor: fal
+    endpoint: fal-ai/bytedance/seedream/v5/pro/edit
+    usos: [localizaciones, props, hojas]
+    precio_img: 0.0675
+    precio_ref_extra: 0.0045
+    referencias: {imagenes: 10}
+    estado: verificar   # endpoint y precio sin confirmar con llamada real
+
+  mock-imagen:
+    proveedor: mock
+    usos: [hojas, localizaciones, props]
+    precio_img: 0.0
+    referencias: {imagenes: 50}
+    estado: confirmado   # imágenes locales con ffmpeg, sin coste

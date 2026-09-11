@@ -13,13 +13,28 @@
       "Bash(gh issue:*)",
       "Bash(gh pr:*)",
       "Bash(ffprobe:*)",
-      "Bash(ffmpeg:*)"
+      "Bash(ffmpeg:*)",
+      "Bash(uv run showrunner:*)"
     ],
     "deny": [
       "Read(./.env)",
       "Bash(git push --force:*)",
       "Bash(git push -f:*)",
       "Bash(cat .env:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run --quiet python scripts/hook_lint_prompt.py",
+            "timeout": 30
+          }
+        ]
+      }
     ]
   }
 }

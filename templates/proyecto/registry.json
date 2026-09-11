@@ -4,13 +4,5 @@
   "personajes": {},
   "localizaciones": {},
   "props": {},
-  "voces": {},
-  "_ejemplo_asset": {
-    "id": "@char_SLUG_Nombre_v1",
-    "descriptor": "texto congelado",
-    "referencias": ["https://…/cara.png", "https://…/hoja_multiangulo.png"],
-    "estado": "aprobado | pendiente | retirado",
-    "creado_con": "modelo@proveedor",
-    "notas": ""
-  }
+  "voces": {}
 }

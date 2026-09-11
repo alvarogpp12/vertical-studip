@@ -1,4 +1,4 @@
 from .base import PeticionVideo, ResultadoVideo
-from .router import obtener_proveedor, estimar_coste, elegir_modelo
+from .router import elegir_modelo, estimar_coste, obtener_proveedor
 
-__all__ = ["PeticionVideo", "ResultadoVideo", "obtener_proveedor", "estimar_coste", "elegir_modelo"]
+__all__ = ["PeticionVideo", "ResultadoVideo", "elegir_modelo", "estimar_coste", "obtener_proveedor"]

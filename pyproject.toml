@@ -17,6 +17,7 @@ dependencies = [
   "scenedetect>=0.6.4",
   "anthropic>=0.40",
   "claude-agent-sdk>=0.1",
+  "fal-client>=0.5",
 ]
 
 [project.optional-dependencies]
@@ -38,3 +39,17 @@ pythonpath = ["src"]
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "C4", "RUF"]
+ignore = [
+  "B008",    # typer declara las opciones en los valores por defecto
+  "RUF001",  # los textos llevan comillas y guiones tipográficos a propósito
+  "RUF002",
+  "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"src/showrunner/dominio/__init__.py" = ["F401"]
+"src/showrunner/valida/__init__.py" = ["F401"]
+"src/showrunner/providers/__init__.py" = ["F401"]

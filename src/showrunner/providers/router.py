@@ -26,7 +26,10 @@ def estimar_coste(nombre_modelo: str, p: PeticionVideo) -> float:
 
 
 def elegir_modelo(nivel: str, p: PeticionVideo, excluir_mock: bool = True) -> str:
-    """El más barato del nivel que cumpla resolución, duración y nº de referencias, y esté configurado."""
+    """El más barato del nivel que cumpla resolución, duración y nº de referencias.
+
+    Sólo considera modelos configurados (con su clave y su id presentes).
+    """
     candidatos = []
     for nombre, spec in cargar_modelos().items():
         if excluir_mock and spec["proveedor"] == "mock":
@@ -42,5 +45,6 @@ def elegir_modelo(nivel: str, p: PeticionVideo, excluir_mock: bool = True) -> st
         if ok:
             candidatos.append((spec["precio_seg"][p.resolucion], nombre))
     if not candidatos:
-        raise LookupError(f"Ningún modelo configurado para nivel={nivel}, {p.resolucion}, {p.duracion}s")
+        raise LookupError(
+            f"Ningún modelo configurado para nivel={nivel}, {p.resolucion}, {p.duracion}s")
     return sorted(candidatos)[0][1]

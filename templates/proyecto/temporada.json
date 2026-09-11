@@ -1,6 +1,6 @@
 {
   "temporada": 1,
   "episodios": [
-    {"id": "ep01", "titulo": "", "gancho": "", "giro": "", "cliffhanger": "", "estado": "pendiente"}
+    {"id": "s01_ep01", "titulo": "", "gancho": "", "giro": "", "cliffhanger": "", "estado": "pendiente"}
   ]
 }

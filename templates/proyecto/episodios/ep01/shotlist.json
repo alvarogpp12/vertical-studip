@@ -1,17 +1,20 @@
 {
-  "episodio": "ep01",
+  "episodio": "s01_ep01",
   "planos": [
     {
-      "id": "ep01_sh001",
+      "id": "s01_ep01_sh001",
       "beat": 1,
-      "duracion": 5,
-      "tamano": "primer plano",
-      "camara": "push-in lento",
-      "refs": ["@char_…", "@loc_…"],
+      "duracion": 1,
+      "tamano": "plano general",
+      "camara": "fijo",
+      "refs": [],
       "dialogo": "",
       "nivel": "borrador",
-      "estado": "pendiente",
-      "toma_aprobada": null
+      "es_master": true,
+      "orden_montaje": 1,
+      "prompt_path": null,
+      "seed": null,
+      "notas": "R-06 · máster de 1 s: fija la geografía antes de que empiece la acción"
     }
   ]
 }

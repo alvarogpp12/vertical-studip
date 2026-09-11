@@ -5,15 +5,18 @@ import json
 import subprocess
 from pathlib import Path
 
+from ..valida.toma import es_vertical
+
 
 def sondear(video: Path) -> dict:
     out = subprocess.run(
-        ["ffprobe", "-v", "error", "-print_format", "json", "-show_streams", "-show_format", str(video)],
+        ["ffprobe", "-v", "error", "-print_format", "json", "-show_streams", "-show_format",
+         str(video)],
         check=True, capture_output=True, text=True,
     ).stdout
     data = json.loads(out)
     v = next(s for s in data["streams"] if s["codec_type"] == "video")
-    num, den = (v.get("r_frame_rate", "0/1").split("/") + ["1"])[:2]
+    num, den = [*v.get("r_frame_rate", "0/1").split("/"), "1"][:2]
     ancho, alto = int(v["width"]), int(v["height"])
     # El contenedor puede durar más que el vídeo si el audio es más largo (pasa con Seedance).
     dur_contenedor = float(data["format"]["duration"])
@@ -24,7 +27,7 @@ def sondear(video: Path) -> dict:
     return {
         "ancho": ancho,
         "alto": alto,
-        "vertical_9_16": abs(ancho / alto - 9 / 16) < 0.01,
+        "vertical_9_16": es_vertical(ancho, alto),
         "fps": round(int(num) / max(int(den), 1), 3),
         "duracion": dur_contenedor,
         "duracion_video": dur_video,

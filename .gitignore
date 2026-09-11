@@ -6,6 +6,7 @@ __pycache__/
 .ruff_cache/
 # Medios pesados: fuera de git (usar almacenamiento externo)
 proyectos/**/tomas/
+proyectos/**/assets/
 proyectos/**/*.mp4
 proyectos/**/*.mov
 proyectos/**/*.png
