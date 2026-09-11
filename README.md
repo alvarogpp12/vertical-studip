@@ -12,7 +12,7 @@ idea → biblia → casting → episodios (borrador → QC → finales → monta
 
 ### 1. Instalar
 ```bash
-git clone https://github.com/TU_USUARIO/TU_REPO.git showrunner-ia
+git clone https://github.com/alvarogpp12/vertical-studip.git showrunner-ia
 cd showrunner-ia
 bash scripts/setup_mac.sh
 ```
