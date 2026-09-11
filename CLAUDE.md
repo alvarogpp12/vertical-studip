@@ -1,21 +1,113 @@
-# Showrunner IA — contexto para Claude Code
+# CLAUDE.md · Showrunner IA
 
-Objetivo: agente que, a partir de una idea básica, crea la biblia de una serie vertical (9:16) de microdrama y la produce con modelos de vídeo IA al menor coste posible, para monetizar en TikTok, YouTube y Meta.
+Eres el ingeniero principal y el director técnico de una **productora 100 % IA**. Construimos un agente que, a partir de una **idea básica**, escribe la **biblia** de una serie vertical (9:16) de microdrama y la **produce** con modelos de vídeo IA, al menor coste posible, para **monetizar en TikTok, YouTube y Meta**.
 
-## Reglas del proyecto
-- Todo en español. Formato vertical 9:16, episodios de 60–90 s.
-- Nunca generar sin pasar por `showrunner generar` (controla presupuesto y escribe en runs/ledger.jsonl).
-- Niveles: borrador (barato, 480p) → trabajo → clave. No usar nivel clave sin toma aprobada en borrador.
-- Controles humanos obligatorios: aprobar biblia, aprobar casting, visto bueno final de cada episodio.
-- Nunca usar caras o voces de personas reales ni propiedad intelectual ajena. Etiquetar como IA al publicar.
-- Las medias pesadas no van a git.
+Idioma de trabajo: **español** (código y nombres técnicos pueden ir en inglés; mensajes, docs y commits en español).
+
+## Al empezar cada sesión
+1. Lee `docs/ESTADO.md` (qué está hecho, en curso y bloqueado).
+2. Revisa los issues abiertos: `gh issue list`.
+3. Si la tarea toca modelos, precios o prompts, lee el documento de `docs/conocimiento/` correspondiente.
+
+## Al terminar cada sesión
+Actualiza `docs/ESTADO.md` y deja la rama con los tests en verde.
+
+---
+
+## Objetivo del producto
+```
+idea (1–3 frases) ─▶ A. DESARROLLO: 3 conceptos → biblia → stress test      🔒 humano aprueba biblia
+                  ─▶ B. PREPRODUCCIÓN: caras, hojas, localizaciones → registry.json   🔒 humano aprueba casting
+                  ─▶ C. PRODUCCIÓN por episodio: guion → shotlist → prompts → borradores → QC → finales → montaje   🔒 visto bueno final
+                  ─▶ D. PUBLICACIÓN con etiqueta IA → retención → vuelve a la sala de guion
+```
+- Episodios de **61–90 s** (TikTok exige más de 60 s), gancho en los primeros 3 s, cliffhanger al final.
+- Cada perfil de redes = **una serie con mundo propio**. Nunca varias cuentas con la misma plantilla (las plataformas lo penalizan como contenido no auténtico).
+- Coste objetivo por episodio de 90 s: **≤ 30–45 $**.
+
+## Decisiones ya tomadas (no reabrir sin datos)
+| Tema | Decisión | Por qué |
+|---|---|---|
+| Especializar el LLM | Skills + archivos de estado + QC + evaluación. **Sin fine-tuning.** | Los modelos de vídeo cambian cada mes; faltan datos etiquetados. Reevaluar con el ledger lleno. |
+| Proveedor | **API directa / agregadores**, no Higgsfield | Higgsfield revende; directo es 65–80 % más barato. |
+| Generación por niveles | borrador = Seedance 2.0 Fast 480p · trabajo = Seedance 2.0 / Kling 3.0 720p · clave = Seedance 2.5 720p | No pagar precio de plano final por un borrador. |
+| Resolución | Generar a 720p máx. y escalar nosotros | Seedance 2.5 no genera 1080p nativo; el 1080p de revendedores es upscale caro. |
+| Formato | 9:16 nativo, 1080×1920 final, 24 fps | Recortar 16:9 pierde calidad. |
+| Licencias | Prohibido HunyuanVideo 1.5 y pesos de MiniMax H3 (excluyen la UE). LTX gratis < 10 M$ ingresos. | Legal. |
+| Máquina | Mac Apple Silicon para desarrollo; GPUs alquiladas solo si > 50 episodios/mes | Coste. |
+
+## Reglas de producción (el conocimiento clave)
+Validadas en ≥ 2 producciones del top 30 de Higgsfield. Detalle en `docs/conocimiento/00_investigacion_sistema.md` y en `.claude/skills/director-vertical/SKILL.md`.
+
+1. **Nada se genera sin estar en `registry.json`** (nombre fijo, descriptor congelado, versión; estado nuevo = asset nuevo).
+2. **Cada prompt es una isla:** descriptores, voice locks y mapas se repiten palabra por palabra.
+3. **Bloques fijos** y `style.md` (Style Prefix + Constraints) inmutable durante la serie.
+4. **La referencia de localización controla geometría, materiales y luz, nunca el encuadre**, y no se amplía la sala.
+5. **Hojas de personaje** en fondo gris, multiángulo; la cara original no se regenera.
+6. **Geografía antes que acción:** máster de 1 s + mapa anclado a objetos visibles.
+7. **Tareas, no emociones; estados, no transiciones; ojos vivos** en cada prompt.
+8. **Describe lo que quieres;** los límites como "= toma fallida", no prohibiciones sueltas.
+9. **"No music" siempre;** diálogo a ~4 palabras/s + 1 s de silencio final.
+10. **Escribe alrededor de las debilidades:** transformaciones fuera de cámara, rebobinado en edición, cambios de estado en un barrido.
+11. **Iterar cambiando una línea;** tras 20 fallos, cambia el plano; empalma tomas; guarda los fallos con el motivo.
+12. **Prueba cada asset en movimiento** y trabaja en borrador antes de gastar en finales.
+
+**Vertical:** ojos en el tercio superior · quinto inferior libre para subtítulos · márgenes de interfaz 130 px arriba / 320 px abajo · diálogo a dos en plano/contraplano o en profundidad · tilts y push-ins, sin travellings laterales ni cámara en mano.
+
+**Fallo conocido del LLM:** tiende a "hacer de director" (añade detalles, cambia cortes). Antes de generar, revisa que referencias activas, acción y mapa coinciden con el shotlist.
+
+## Reglas de ingeniería
+- **Nunca** llamar a una API de generación fuera de `showrunner generar` o de `providers/`: ahí están el límite de gasto y el ledger.
+- **Nunca** leer, imprimir ni commitear `.env` ni claves. Las medias (mp4, png, jpg) no van a git.
+- **No usar nivel `clave`** sin una toma aprobada en `borrador`.
+- Antes de cualquier generación real: estima el coste con `showrunner estimar` y dilo. Si una tarea puede gastar más de **5 $**, pide confirmación.
+- Precios y modelos: solo en `config/modelos.yaml`, con `estado: confirmado | estimado | verificar`.
+- Nuevos proveedores: clase en `src/showrunner/providers/` que herede de `Proveedor`, registrada en `router.py`, con test usando mocks (sin llamadas reales en CI).
+- Flujo git: 1 issue = 1 rama (`feat/12-descripcion`) = 1 PR. Commits `feat:` `fix:` `docs:` `skill:` `config:`. Nunca a `main` directamente ni `push --force`. Ver `docs/FLUJO_DE_TRABAJO.md`.
+- Tests: `uv run pytest` en verde antes de cada commit.
 
 ## Comandos
-- `uv run showrunner doctor` · `uv run showrunner modelos` · `uv run showrunner nuevo "<título>" --idea "…"`
-- `uv run showrunner generar prompt.md --salida ruta.mp4 --nivel borrador --duracion 5`
-- `uv run showrunner qc ruta.mp4 --referencia ref.png` · `uv run pytest`
+```bash
+uv sync --extra dev                      # dependencias
+uv run pytest -q                         # tests
+uv run showrunner doctor                 # diagnóstico sin coste
+uv run showrunner modelos                # catálogo y precios
+uv run showrunner nuevo "Título" --idea "…"
+uv run showrunner estimar --duracion 5 --resolucion 480p --nivel borrador
+uv run showrunner generar prompt.md --salida proyectos/<serie>/episodios/ep01/tomas/sh001_t1.mp4 --nivel borrador --duracion 5 --plano ep01_sh001
+uv run showrunner generar prompt.md --salida runs/prueba.mp4 --modelo mock --duracion 3   # gratis
+uv run showrunner qc ruta.mp4 --referencia ref.png
+```
 
-## Skills
-- `.claude/skills/showrunner` — idea → biblia
-- `.claude/skills/director-vertical` — plano → prompt
-- `.claude/skills/qc-continuidad` — revisión de tomas
+## Mapa del repo
+```
+CLAUDE.md                      este archivo
+docs/ESTADO.md                 estado vivo del proyecto (actualizar siempre)
+docs/PLAN_ACCIONES.md          acciones que hace el usuario (cuentas, claves)
+docs/FLUJO_DE_TRABAJO.md       git, ramas, PR
+docs/conocimiento/             investigación: sistema, objetivo, proveedores, plataformas
+config/modelos.yaml            catálogo de modelos, niveles y precios
+src/showrunner/cli.py          comandos
+src/showrunner/providers/      base, router, fal, byteplus, mock
+src/showrunner/ledger.py       registro de generaciones + límites de gasto
+src/showrunner/qc/             sonda (ffprobe), fotogramas, paleta/ΔE, escenas
+src/showrunner/proyecto.py     crea series desde templates/proyecto
+templates/proyecto/            biblia, style, voces, registry, temporada, shotlist
+proyectos/<serie>/             una carpeta por serie (texto en git, medias fuera)
+.claude/skills/                showrunner · director-vertical · qc-continuidad
+runs/ledger.jsonl              histórico de generaciones (fuera de git)
+```
+
+## Hoja de ruta
+| Fase | Objetivo | Estado |
+|---|---|---|
+| 0 · Cimientos | Conectores verificados con llamada real, precios de consola, subida de referencias a R2, CI verde | en curso |
+| 1 · Biblia | Skill `showrunner` completa, probada con 3 ideas reales del usuario | pendiente |
+| 2 · Prueba de modelos | 10 planos verticales en cada modelo: calidad, intentos y coste por plano aceptado | pendiente |
+| 3 · Episodio piloto | Assets automáticos, orquestador con Claude Agent SDK, montaje FFmpeg | pendiente |
+| 4 · Publicación | APIs de plataformas con etiqueta IA + analítica de retención | pendiente |
+
+## Métricas que importan
+- Intentos por plano aceptado · coste por segundo aceptado · coste por episodio.
+- % de tomas aceptadas al primer intento en borrador.
+- Retención media y % de visualización completa por episodio (fase 4).
